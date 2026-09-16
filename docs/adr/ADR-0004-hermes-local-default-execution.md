@@ -134,3 +134,7 @@ it selects role-isolation strategy, not model tier, and is unaffected by this AD
 - **REF-004**: `hermes/.hermes.md` (model context-window table — source of the 65,536-token figure
   for `unsloth/Qwen3.8-27B-NVFP4`).
 - **REF-005**: `templates/ADR-template.md`, `agents/adr-generator.agent.md` (hardened by IMP-003).
+- **REF-006**: `docs/adr/ADR-0004-hermes-solo-local-default-execution.md` — an independently
+  drafted ADR reaching the same decision, created in a concurrent session on 2026-09-16 before
+  either document was pushed to `origin/main`. Kept as-authored (ADR immutability principle) and
+  marked "Superseded by" this document; not implemented.

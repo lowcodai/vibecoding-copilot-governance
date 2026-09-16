@@ -1,7 +1,7 @@
 # ADR-0004 — Default execution tier for Plan/Runbook/dev/test/sec: Hermes on the local model, frontier model by exception
 
 **Date:** 2026-09-16
-**Status:** Proposed
+**Status:** Proposed — Superseded by `ADR-0004-hermes-local-default-execution.md` (same decision number, independently drafted in a concurrent session on 2026-09-16 before either was pushed; the Capitaine chose to keep the other file — Status: Accepted, including the full IMP-001/002/003 implementation — as the authoritative ADR-0004. This document is kept as-authored, per the ADR immutability principle, for audit/traceability only; do not implement from it.)
 **Decision makers:** Capitaine (Jérémie Coste), Arcane (Hermes)
 **Technical context:** lowcodai governance ecosystem (templates, Copilot agents, methodology) — repo `vibecoding-copilot-governance`; applies to execution across every repo governed by this methodology.
 **authored_by:** frontier-model (this document is drafted by Claude Sonnet 5 in this session)
