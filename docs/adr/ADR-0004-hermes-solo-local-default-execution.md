@@ -1,1 +1,168 @@
-IyBBRFItMDAwNCDigJQgRGVmYXVsdCBleGVjdXRpb24gdGllciBmb3IgUGxhbi9SdW5ib29rL2Rldi90ZXN0L3NlYzogSGVybWVzIG9uIHRoZSBsb2NhbCBtb2RlbCwgZnJvbnRpZXIgbW9kZWwgYnkgZXhjZXB0aW9uCgoqKkRhdGU6KiogMjAyNi0wOS0xNgoqKlN0YXR1czoqKiBQcm9wb3NlZAoqKkRlY2lzaW9uIG1ha2VyczoqKiBDYXBpdGFpbmUgKErDqXLDqW1pZSBDb3N0ZSksIEFyY2FuZSAoSGVybWVzKQoqKlRlY2huaWNhbCBjb250ZXh0OioqIGxvd2NvZGFpIGdvdmVybmFuY2UgZWNvc3lzdGVtICh0ZW1wbGF0ZXMsIENvcGlsb3QgYWdlbnRzLCBtZXRob2RvbG9neSkg4oCUIHJlcG8gYHZpYmVjb2RpbmctY29waWxvdC1nb3Zlcm5hbmNlYDsgYXBwbGllcyB0byBleGVjdXRpb24gYWNyb3NzIGV2ZXJ5IHJlcG8gZ292ZXJuZWQgYnkgdGhpcyBtZXRob2RvbG9neS4KKiphdXRob3JlZF9ieToqKiBmcm9udGllci1tb2RlbCAodGhpcyBkb2N1bWVudCBpcyBkcmFmdGVkIGJ5IENsYXVkZSBTb25uZXQgNSBpbiB0aGlzIHNlc3Npb24pCioqZXhlY3V0aW9uX21vZGU6KiogaGVybWVzLXNvbG8gKGRvY3VtZW50YXJ5L2dvdmVybmFuY2Ugd29yayDigJQgbm8gT3BlbkhhbmRzIGRlbGVnYXRpb24gbmVlZGVkKQoKIyMgQ29udGV4dAoKQURSLTAwMDEgZXN0YWJsaXNoZWQgdGhlIFBSRCDihpIgQURSIOKGkiBQbGFuIOKGkiBSdW5ib29rIOKGkiBleGVjdXRpb24gY2hhaW4gYW5kIHNldHRsZWQgdHdvCmRpc3RpbmN0IGF4ZXMgZm9yIGl0OgoKLSBhbiBgYXV0aG9yZWRfYnlgIGZpZWxkIChgZnJvbnRpZXItbW9kZWxgIHJlY29tbWVuZGVkLCBgbG9jYWwtbW9kZWxgIGFsbG93ZWQpIGZvcgogICoqZGVjaXNpb24gYXJ0aWZhY3RzKiogKFBSRCwgQURSKSBvbmx5LiBgZG9jcy9tZXRob2RvbG9neS9QUkQtQURSLVBMQU4tUlVOQk9PSy1XT1JLRkxPVy5tZGAKICBpcyBleHBsaWNpdCB0aGF0IHRoaXMgcmVjb21tZW5kYXRpb24gc3RvcHMgdGhlcmU6ICoiVGhlIFBsYW4gYW5kIHRoZSBSdW5ib29rIGRvIG5vdCBjYXJyeQogIHRoaXMgcmVjb21tZW5kYXRpb246IHRoZXkgYXJlIGV4ZWN1dGlvbiBhcnRpZmFjdHMsIG5vdCBkZWNpc2lvbiBhcnRpZmFjdHMuIioKLSBhbiBgZXhlY3V0aW9uX21vZGVgIGZpZWxkIChgaGVybWVzLXNvbG9gIC8gYGhlcm1lcy1vcmNoZXN0cmF0b3Itb3BlbmhhbmRzYCkgd2l0aCBleHBsaWNpdAogIHNlbGVjdGlvbiBjcml0ZXJpYSAoaXNvbGF0aW9uLCBwYXJhbGxlbGlzbSwgc3Rha2VzKSBmb3IgKndobyBvcmNoZXN0cmF0ZXMqIGV4ZWN1dGlvbiDigJQgYQogIHNpbmdsZSBIZXJtZXMgYWdlbnQgc2VxdWVudGlhbGx5IHRha2luZyBldmVyeSByb2xlLCB2ZXJzdXMgSGVybWVzIGRlbGVnYXRpbmcgZWFjaCByb2xlIHRvCiAgYW4gaXNvbGF0ZWQgT3BlbkhhbmRzIGFwcC1jb252ZXJzYXRpb24uCgpXaGF0IEFEUi0wMDAxIG5ldmVyIHNldHRsZWQ6IG9uY2UgYW4gZXhlY3V0aW9uIG1vZGUgaXMgY2hvc2VuIOKAlCBpbiBwcmFjdGljZSBhbG1vc3QgYWx3YXlzCmBoZXJtZXMtc29sb2AsIHRoZSBvbmx5IG1vZGUgdGhhdCBpcyBhY3R1YWxseSBtYXR1cmUgdG9kYXkgKGl0IGV4ZWN1dGVkIEFEUi0wMDAxIGl0c2VsZiBhbmQKdGhlIEFEUi0wMDAzIHJlbmFtZSB3YXZlOyBNb2RlIEIgcmVtYWlucyBnYXRlZCBvbiBPcGVuSGFuZHMgcHJlcmVxdWlzaXRlcyBub3QgbWV0IGV2ZXJ5d2hlcmUpCuKAlCAqKndoaWNoIG1vZGVsIHRpZXIqKiBkcml2ZXMgSGVybWVzIHdoaWxlIGl0IGV4ZWN1dGVzIHRoZSBQbGFuL1J1bmJvb2sgcm9sZXMgKGFyY2hpdGVjdHVyZSwKZGV2LCB0ZXN0LCBzZWN1cml0eSk/IE5vdGhpbmcgYW5zd2VycyB0aGlzIHRvZGF5OyBlYWNoIEFEUiBpcyBub21pbmFsbHkgbGVmdCB0byBhcmJpdHJhdGUgaXQKY2FzZSBieSBjYXNlLCB3aGljaCBpbiBwcmFjdGljZSBoYXMgbmV2ZXIgYmVlbiBkb25lIGV4cGxpY2l0bHkuIEFEUi0wMDAzIGlsbHVzdHJhdGVzIHRoZQpyZXN1bHRpbmcgY29uZnVzaW9uIGRpcmVjdGx5OiBpdHMgYGF1dGhvcmVkX2J5YCBmaWVsZCByZWFkcyBgZnJvbnRpZXItbW9kZWwKKFF3ZW4zLjgtMjdCLU5WRlA0KWAsIGNvbmZsYXRpbmcgdGhlIG1vZGVsLXRpZXIgYXhpcyB3aXRoIHRoZSBkZWNpc2lvbi1hdXRob3JzaGlwIGF4aXMgdGhpcwpBRFIgbm93IHNlcGFyYXRlcyBvdXQuCgpUd28gY2hhbmdlcyBpbiBjb25zdHJhaW50IGp1c3RpZnkgYW5zd2VyaW5nIHRoaXMgbm93IHJhdGhlciB0aGFuIGNvbnRpbnVpbmcgdG8gbGVhdmUgaXQKaW1wbGljaXQ6CgotICoqQ29zdC4qKiBUaGUgdm9sdW1lIG9mIGRvd25zdHJlYW0gZXhlY3V0aW9uIHdvcmsgKGRldi90ZXN0L3NlYyBhY3Jvc3MgdGhlIGZvdXIgdGVtcGxhdGUKICByZXBvcyBwbHVzIGNvbnN1bWVyIHJlcG9zIHN1Y2ggYXMgYGl0c2hha2VyLWRneC1zcGFyay1WMmAsIGBIZXJtZXNWUFMyYCwgYW5kIGZ1dHVyZQogIGluc3RhbnRpYXRlZCBwcm9qZWN0cykgZmFyIGV4Y2VlZHMgdGhlIHZvbHVtZSBvZiBQUkQvQURSIGF1dGhvcmluZy4gUnVubmluZyBhIGZyb250aWVyCiAgbW9kZWwgYnkgZGVmYXVsdCBhdCB0aGF0IHZvbHVtZSBpcyBub3Qgc3VzdGFpbmFibGUg4oCUIHRoZSBDYXBpdGFpbmUgYWxyZWFkeSByZWplY3RlZCBhCiAgImZyb250aWVyIG1vZGVsIG1hbmRhdG9yeSIgb3B0aW9uIGZvciBQUkQvQURSIGF1dGhvcmluZyBpbiBBRFItMDAwMSwgZm9yIGNvc3QgcmVhc29uczsgdGhlCiAgc2FtZSBhcmd1bWVudCBhcHBsaWVzIHdpdGggbW9yZSBmb3JjZSBkb3duc3RyZWFtLCB3aGVyZSB2b2x1bWUgaXMgbGFyZ2VyLgotICoqTWF0dXJpdHkgb2YgTW9kZSBBLioqIGBoZXJtZXMtc29sb2AgKHZpYSB0aGUgYHN1YmFnZW50LWRyaXZlbi1kZXZlbG9wbWVudGAgc2tpbGwpIGlzIG5vdwogIGEgcHJvdmVuIHBhdHRlcm4gaW4gYWN0dWFsIHVzZSDigJQgaXQgZXhlY3V0ZWQgQURSLTAwMDEgYW5kIHRoZSBBRFItMDAwMyByZW5hbWUgd2F2ZSDigJQgd2hpbGUKICBNb2RlIEIgc3RpbGwgZGVwZW5kcyBvbiBPcGVuSGFuZHMgcHJlcmVxdWlzaXRlcyAoYG9oX3BpbG90LnB5YCAvIGBvcGVuaGFuZHMtcGlsb3RgCiAgYXZhaWxhYmlsaXR5KSB0aGF0IGFyZSBub3QgZ3VhcmFudGVlZCBvbiBldmVyeSB0YXJnZXQuCgpUaGlzIEFEUiBmaWxscyB0aGUgZ2FwOiBpdCBmaXhlcyB0aGUgZGVmYXVsdCAqbW9kZWwgdGllciogZm9yIGV4ZWN1dGlvbiAoSGVybWVzIG9uIHRoZSBsb2NhbAptb2RlbCwgYnkgZGVmYXVsdCksIHRvZ2V0aGVyIHdpdGggZXNjYWxhdGlvbiBjcml0ZXJpYSB0byBhIGZyb250aWVyIG1vZGVsIHRoYXQgYXJlCm9iamVjdGl2ZWx5IHZlcmlmaWFibGUg4oCUIG5vdCBhIGdlbmVyaWMgcmVmbGV4IG9mIGNhdXRpb24uCgoqKlNjb3BlIG5vdGUuKiogVGhpcyBkZWNpc2lvbiBpcyBvcnRob2dvbmFsIHRvIGBleGVjdXRpb25fbW9kZWAuIGBleGVjdXRpb25fbW9kZWAgKHNvbG8gdnMuCm9yY2hlc3RyYXRvci1vcGVuaGFuZHMsIGFscmVhZHkgc2V0dGxlZCBieSBBRFItMDAwMSAvIHRoZSB3b3JrZmxvdydzIMKnTW9kZXMpIGlzIHVuY2hhbmdlZCBieQp0aGlzIEFEUi4gVGhpcyBBRFIgYWRkcyBhIHNlY29uZCwgaW5kZXBlbmRlbnQgYXhpcyDigJQgdGhlICptb2RlbCB0aWVyKiAobG9jYWwgdnMuIGZyb250aWVyKSDigJQKd2hpY2ggY2FuIHZhcnkgd2l0aG91dCBjaGFuZ2luZyBgZXhlY3V0aW9uX21vZGVgOiBhbiBlc2NhbGF0aW9uIHRvIGEgZnJvbnRpZXIgbW9kZWwgZG9lcyBub3QKYnkgaXRzZWxmIG1vdmUgSGVybWVzIG91dCBvZiBgaGVybWVzLXNvbG9gLiBIZXJtZXMgY2FuIHN0YXkgaW4gYGhlcm1lcy1zb2xvYCBmb3IgYSBnaXZlbiB0YXNrCndoaWxlIHRoYXQgdGFzayBpcywgZm9yIHRoZSBkdXJhdGlvbiBvZiB0aGUgZXNjYWxhdGlvbiwgZHJpdmVuIGJ5IGEgZnJvbnRpZXIgbW9kZWwgKENsYXVkZQpTb25uZXQgNSwgR1BULTUuNiBTb2wpIGluc3RlYWQgb2YgdGhlIGxvY2FsIG1vZGVsLgoKIyMgT3B0aW9ucyBjb25zaWRlcmVkCgp8IE9wdGlvbiB8IFByb3MgfCBDb25zIHwKfC0tLS0tLS0tfC0tLS0tLXwtLS0tLXwKfCBTdGF0dXMgcXVvIOKAlCBubyBleHBsaWNpdCBkZWZhdWx0LCBhcmJpdHJhdGVkIGNhc2UgYnkgY2FzZSBwZXIgQURSIHwgTWF4aW11bSBmbGV4aWJpbGl0eSwgbm8gaW1wb3NlZCBiaWFzIHwgUmVwZWF0ZWQgYXJiaXRyYXRpb24gb3ZlcmhlYWQgb24gZXZlcnkgQURSOyBkcmlmdHMgdG93YXJkIGFuIHVuc3RhdGVkLCB1bmRvY3VtZW50ZWQgImZyb250aWVyIGJ5IGNhdXRpb24iIGRlZmF1bHQ7IGRvZXMgbm90IHNjYWxlIHRvIHRoZSBjdXJyZW50IGV4ZWN1dGlvbiB2b2x1bWUgfAp8IEZyb250aWVyIG1vZGVsIGJ5IGRlZmF1bHQgZm9yIGV2ZXJ5dGhpbmcsIGxvY2FsIG1vZGVsIGJ5IGV4Y2VwdGlvbiB8IE1heGltdW0gcXVhbGl0eS9zYWZldHkgYmFzZWxpbmUsIG1pbmltYWwgZHJpZnQgcmlzayB8IENvc3QtcHJvaGliaXRpdmUgYXQgY3VycmVudCB2b2x1bWUgKGRpcmVjdCBwcmVjZWRlbnQ6IHJlamVjdGVkIGJ5IHRoZSBDYXBpdGFpbmUgZm9yIFBSRC9BRFIgaW4gQURSLTAwMDEsIGZvciBjb3N0IHJlYXNvbnMg4oCUIGFwcGxpZXMgbW9yZSBzdHJvbmdseSBkb3duc3RyZWFtKTsgY29udHJhZGljdHMgdGhlIHByaW5jaXBsZSBhbHJlYWR5IGFwcGxpZWQgKGxvY2FsIG1vZGVsIGFscmVhZHkgYWxsb3dlZCBmb3IgcmV2ZXJzaWJsZSwgbG93LXN0YWtlcyBQUkQvQURSKTsgdW5kZXItdXNlcyB0aGUgcHJvdmVuIG1hdHVyaXR5IG9mIE1vZGUgQSB8CnwgTG9jYWwgbW9kZWwgYnkgZGVmYXVsdCBmb3IgZXZlcnl0aGluZywgZnJvbnRpZXIgbW9kZWwgYnkgZXhjZXB0aW9uIG9uIGV4cGxpY2l0IGNyaXRlcmlhICgqKnJldGFpbmVkKiopIHwgQ29zdCBhbGlnbmVkIHdpdGggdGhlIGFjdHVhbCBleGVjdXRpb24gdm9sdW1lOyBleHRlbmRzIGEgcHJpbmNpcGxlIGFscmVhZHkgYWNjZXB0ZWQgKGxvY2FsIG1vZGVsIGZvciByZXZlcnNpYmxlL2xvdy1zdGFrZXMgd29yaykgaW5zdGVhZCBvZiBpbnZlbnRpbmcgYSBuZXcgb25lOyBjYXBpdGFsaXplcyBvbiBNb2RlIEEncyBwcm92ZW4gdHJhY2sgcmVjb3JkOyBrZWVwcyBlc2NhbGF0aW9uIGF2YWlsYWJsZSBhbmQgcnVsZS1ib3VuZCByYXRoZXIgdGhhbiByZW1vdmVkIHwgUXVhbGl0eS1kcmlmdCByaXNrIHdpdGhvdXQgYSBzeXN0ZW1hdGljIGZyb250aWVyIHNhZmVndWFyZCDigJQgQURSLTAwMDEncyBtaXRpZ2F0aW9uIChgYXV0aG9yZWRfYnlgICsgcmVjb21tZW5kZWQgZnJvbnRpZXIgcmV2aWV3IGJlZm9yZSAiQWNjZXB0ZWQiKSBjb3ZlcnMgb25seSBQUkQvQURSLCBub3QgUGxhbi9SdW5ib29rOyByZXF1aXJlcyByaWdvcm91c2x5IHZlcmlmaWFibGUgZXNjYWxhdGlvbiBjcml0ZXJpYSBzbyB0aGUgZXhjZXB0aW9uIGRvZXMgbm90IGJlY29tZSBhIG1lYW5pbmdsZXNzIGNoZWNrYm94IHwKCiMjIERlY2lzaW9uCgpXZSBjaG9vc2UgKipsb2NhbCBtb2RlbCBieSBkZWZhdWx0IGZvciBoZXJtZXMtc29sbyBleGVjdXRpb24sIGZyb250aWVyIG1vZGVsIGJ5IGV4Y2VwdGlvbiBvbgpleHBsaWNpdCBjcml0ZXJpYSoqIGJlY2F1c2UgaXQgYWxpZ25zIGNvc3Qgd2l0aCB0aGUgYWN0dWFsIHZvbHVtZSBvZiBkb3duc3RyZWFtIGV4ZWN1dGlvbgp3b3JrLCBleHRlbmRzIGEgcHJpbmNpcGxlIGFscmVhZHkgYWNjZXB0ZWQgZm9yIFBSRC9BRFIgYXV0aG9yaW5nIHJhdGhlciB0aGFuIGludmVudGluZyBhIG5ldwpvbmUsIGFuZCBjYXBpdGFsaXplcyBvbiB0aGUgcHJvdmVuIG1hdHVyaXR5IG9mIE1vZGUgQSBpbnN0ZWFkIG9mIHRoZSBzdGlsbC1wYXJ0aWFsIE1vZGUgQi4KCkJ5IGRlZmF1bHQsIEhlcm1lcyBydW5uaW5nIG9uIHRoZSBsb2NhbCBtb2RlbCAoUXdlbi0zLjgtMjdCLU5WRlA0LCBER1ggU3BhcmssIHZMTE0g4oCUIHRoZQptb2RlbCBpZGVudGlmaWVkIGFzICJkZWZhdWx0IiBpbiBgaGVybWVzLy5oZXJtZXMubWRgKSB0YWtlcyBvbiBhbG1vc3QgZXZlcnkgcm9sZQooYXJjaGl0ZWN0dXJlLCBkZXYsIHRlc3QsIHNlY3VyaXR5KSBpbiBgZXhlY3V0aW9uX21vZGU6IGhlcm1lcy1zb2xvYCwgdW50aWwgYW4gb3BlcmF0aW9uYWwsCmZ1bmN0aW9uYWwgc29sdXRpb24gaXMgcmVhY2hlZCB0aGF0IGNhbiBiZSBpbXByb3ZlZCB0aHJvdWdoIHN1YnNlcXVlbnQgaXRlcmF0aW9ucy4gUmVjb3Vyc2UKdG8gYSBmcm9udGllciBtb2RlbCAoQ2xhdWRlIFNvbm5ldCA1LCBHUFQtNS42IFNvbCkgaXMgdGhlIGV4Y2VwdGlvbiwgdHJpZ2dlcmVkIG9ubHkgYnkgdGhlCmV4cGxpY2l0IGNyaXRlcmlhIGJlbG93IOKAlCBuZXZlciBieSBhIGRlZmF1bHQgcmVmbGV4IG9mIGNhdXRpb24uCgojIyMgRXNjYWxhdGlvbiBjcml0ZXJpYQoKRWFjaCBjcml0ZXJpb24gYmVsb3cgaXMgaW5kaXZpZHVhbGx5IHN1ZmZpY2llbnQgdG8gdHJpZ2dlciBlc2NhbGF0aW9uIHRvIGEgZnJvbnRpZXIgbW9kZWwsCmFuZCBlYWNoIGlzIHdyaXR0ZW4gdG8gYmUgb2JqZWN0aXZlbHkgY29uc3RhdGFibGUgZHVyaW5nIGV4ZWN1dGlvbiDigJQgbmV2ZXIgYSB2YWd1ZSAiaWYKbmVlZGVkIiBvciAiaWYgY29tcGxleCBlbm91Z2giIGp1ZGdtZW50IGNhbGwuCgoxLiAqKlB1YmxpYyBpbmZyYXN0cnVjdHVyZSAvIHByb2R1Y3Rpb24uKiogVGhlIHRhc2sgbW9kaWZpZXMgaW5mcmFzdHJ1Y3R1cmUgZXhwb3NlZAogICBwdWJsaWNseSBvciBhIHByb2R1Y3Rpb24gZGVwbG95bWVudCAoZS5nLiByZXZlcnNlLXByb3h5L0ROUyBjb25maWd1cmF0aW9uLCBhIHB1YmxpYyBBUEkKICAgc3VyZmFjZSwgYW55IHBhdGggb3IgcmVzb3VyY2UgYWxyZWFkeSB0YWdnZWQgYHByb2R1Y3Rpb25gL2BwdWJsaWNgIHVuZGVyIHRoZSB0YXJnZXQKICAgcmVwbydzIG93biBjb252ZW50aW9ucykuIFZlcmlmaWFibGUgdmlhIGZpbGUgcGF0aCBvciBlbnZpcm9ubWVudCB0YWcsIG5vdCBhIHZhbHVlCiAgIGp1ZGdtZW50LgoyLiAqKlNlbnNpdGl2ZSBkYXRhLioqIFRoZSB0YXNrIHRvdWNoZXMgc2VjcmV0cywgY3JlZGVudGlhbHMsIFBJSSwgb3IgYW55IHBhdGgvY29uZmlnCiAgIGFscmVhZHkgY2xhc3NpZmllZCBhcyBzZW5zaXRpdmUgKGUuZy4gYW55dGhpbmcgcmVxdWlyaW5nIERvcHBsZXIgc2VjcmV0IGluamVjdGlvbiB1bmRlcgogICBleGlzdGluZyBgQUdFTlRTLm1kYCBjb252ZW50aW9ucywgb3IgYSBzY2hlbWEvdGFibGUgYWxyZWFkeSBjbGFzc2lmaWVkIGFzIHNlbnNpdGl2ZSkuCiAgIFZlcmlmaWFibGUgdmlhIGFuIGV4aXN0aW5nIHNlY3JldC1tYW5hZ2VtZW50IGZsYWcsIG5vdCBhIHN1YmplY3RpdmUgcmVhZC4KMy4gKipTaWduaWZpY2FudCByZWN1cnJpbmcgY29zdC4qKiBUaGUgdGFzayBwcm92aXNpb25zIG9yIGNoYW5nZXMgYSByZXNvdXJjZSB3aG9zZQogICByZWN1cnJpbmcgY29zdCBleGNlZWRzICoqJDUwL21vbnRoKiogKGEgbmV3IHBhaWQgQVBJIHN1YnNjcmlwdGlvbiwgYW4gYWx3YXlzLW9uIGNvbXB1dGUKICAgaW5zdGFuY2UsIGEgY2xvdWQgcmVzb3VyY2UgYmlsbGVkIG1vbnRobHkpLiBWZXJpZmlhYmxlIGJ5IGNvbXBhcmluZyBhIHN0YXRlZCBkb2xsYXIKICAgZmlndXJlIGFnYWluc3QgdGhlIHRocmVzaG9sZCwgY2hlY2thYmxlIGFnYWluc3QgdGhlIHNlcnZpY2UncyBpbnZvaWNlIG9yIHF1b3RlLgo0LiAqKkFtYmlndWl0eSB1bnJlc29sdmVkIGFmdGVyIDMgY2xhcmlmaWNhdGlvbiBhdHRlbXB0cy4qKiBIZXJtZXMgcmUtcmVhZHMgdGhlIHNvdXJjZSBBRFIsCiAgIHRoZSBQbGFuLCBhbmQgdGhlIHJlbGV2YW50IGAuaGVybWVzL3BsYW5zL2AgaGlzdG9yeSwgYW5kIHBlcmZvcm1zIHVwIHRvIDMgZG9jdW1lbnRlZAogICBjbGFyaWZpY2F0aW9uIHBhc3NlcyAoZWFjaCBsb2dnZWQgYXMgYSBjaGVja3BvaW50IHBlciB0aGUgYGhlcm1lcy8uaGVybWVzLm1kYAogICBkaXNjaXBsaW5lKS4gSWYgdGhlIGFtYmlndWl0eSBpcyBzdGlsbCB1bnJlc29sdmVkIGFmdGVyIHRoZSAzcmQgYXR0ZW1wdCwgZXNjYWxhdGlvbiBpcwogICBtYW5kYXRvcnkgcmF0aGVyIHRoYW4gZ3Vlc3NpbmcuIFZlcmlmaWFibGUgdmlhIHRoZSBjb3VudCBvZiBkb2N1bWVudGVkIGNsYXJpZmljYXRpb24KICAgYXR0ZW1wdHMgYWdhaW5zdCB0aGUgdGhyZXNob2xkIG9mIDMuCjUuICoqQ29udHJhZGljdGlvbiBiZXR3ZWVuIHRoZSBBRFIgYW5kIHRoZSBhY3R1YWwgc3RhdGUgb2YgdGhlIGNvZGUuKiogRHVyaW5nIGV4ZWN1dGlvbiwKICAgSGVybWVzIGRldGVjdHMgdGhhdCB0aGUgc291cmNlIEFEUidzIGRlY2lzaW9uIHJlc3RzIG9uIGFuIGFzc3VtcHRpb24gKGEgZGVwZW5kZW5jeSwgYQogICB2ZXJzaW9uLCBhbiBhcmNoaXRlY3R1cmFsIGZhY3QpIHRoYXQgdGhlIGN1cnJlbnQgc3RhdGUgb2YgdGhlIHJlcG8gY29udHJhZGljdHMuCiAgIFZlcmlmaWFibGUgdmlhIGFuIGV4cGxpY2l0IGRpZmYgYmV0d2VlbiB0aGUgQURSJ3MgYXNzdW1wdGlvbiBhbmQgdGhlIG9ic2VydmVkIHJlcG8gc3RhdGUKICAgKHZpYSBjb2RlL2BnaXRgIGluc3BlY3Rpb24pLCBub3QgYW4gaW1wcmVzc2lvbi4KCiMjIENvbnNlcXVlbmNlcwoKIyMjIFBvc2l0aXZlCgotICoqUE9TLTAwMSoqOiBDb3N0IGFsaWduZWQgd2l0aCB0aGUgYWN0dWFsIGV4ZWN1dGlvbiB2b2x1bWUsIHdoaWNoIGlzIGZhciBsYXJnZXIgdGhhbiB0aGUKICBQUkQvQURSIGF1dGhvcmluZyB2b2x1bWUg4oCUIHRoZSBidWxrIG9mIGV4ZWN1dGlvbiBydW5zIG9uIGxvY2FsIGluZmVyZW5jZSB3aXRoIG5vCiAgcGVyLXRva2VuIGJpbGxpbmcuCi0gKipQT1MtMDAyKio6IEZhc3RlciBpdGVyYXRpb24g4oCUIEhlcm1lcyBvbiB0aGUgbG9jYWwgbW9kZWwgY2FuIGl0ZXJhdGUgd2l0aG91dCBhIHJvdW5kIHRyaXAKICB0byBhbiBleHRlcm5hbCBBUEksIGNvbnNpc3RlbnQgd2l0aCB0aGUgInVudGlsIGFuIG9wZXJhdGlvbmFsIHNvbHV0aW9uIGlzIHJlYWNoZWQuLi4KICBpbXByb3ZhYmxlIHRocm91Z2ggc3Vic2VxdWVudCBpdGVyYXRpb25zIiBmcmFtaW5nIG9mIHRoZSBkZWNpc2lvbiAoc2hpcCBhIHdvcmtpbmcgZmlyc3QKICBwYXNzIGZhc3QgcmF0aGVyIHRoYW4gYmxvY2sgb24gZnJvbnRpZXItbW9kZWwgYXZhaWxhYmlsaXR5KS4KLSAqKlBPUy0wMDMqKjogR2VuZXJhbGl6ZXMgYSBwYXR0ZXJuIGFscmVhZHkgcHJvdmVuIGluIHByYWN0aWNlIChNb2RlIEEgLyBoZXJtZXMtc29sbywKICBhbHJlYWR5IHVzZWQgdG8gZXhlY3V0ZSBBRFItMDAwMSBhbmQgQURSLTAwMDMpIGluc3RlYWQgb2YgbGVhdmluZyBpdCBpbXBsaWNpdC4KCiMjIyBOZWdhdGl2ZQoKLSAqKk5FRy0wMDEqKjogUXVhbGl0eS1kcmlmdCByaXNrIHdpdGhvdXQgYSBzeXN0ZW1hdGljIGZyb250aWVyIHNhZmVndWFyZCBhdCB0aGUgZXhlY3V0aW9uCiAgbGF5ZXIuIFRoaXMgc2hvdWxkIGJlIHN0YXRlZCBob25lc3RseTogQURSLTAwMDEncyBtaXRpZ2F0aW9uIChgYXV0aG9yZWRfYnlgIGF1ZGl0IGZpZWxkICsKICByZWNvbW1lbmRlZCBmcm9udGllciByZXZpZXcgYmVmb3JlICJBY2NlcHRlZCIpIGNvdmVycyBvbmx5IFBSRC9BRFIg4oCUIHRoZSB3b3JrZmxvdyBkb2N1bWVudAogIGV4cGxpY2l0bHkgc3RhdGVzIFBsYW4gYW5kIFJ1bmJvb2sgImRvIG5vdCBjYXJyeSB0aGlzIHJlY29tbWVuZGF0aW9uLiIgVGhpcyBBRFIgdGhlcmVmb3JlCiAgaW50cm9kdWNlcyBhIG1pdGlnYXRpb24gZ2FwIGF0IHRoZSBleGVjdXRpb24gbGF5ZXIgdGhhdCBpdCBkb2VzIG5vdCBpdHNlbGYgY2xvc2Ug4oCUIG9ubHkgdGhlCiAgcGFydGlhbCBlc2NhbGF0aW9uIGNyaXRlcmlhIGFib3ZlIGFwcGx5LiBDbG9zaW5nIHRoaXMgZ2FwIHN0cnVjdHVyYWxseSAoYW4gYXVkaXQgZGlzY2lwbGluZQogIGZvciBQbGFuL1J1bmJvb2sgZXF1aXZhbGVudCB0byBgYXV0aG9yZWRfYnlgKSBpcyBkZWZlcnJlZCB0byB0aGUgZm9sbG93LXVwIHdvcmsgbGlzdGVkIHVuZGVyCiAgSW1wbGVtZW50YXRpb24uCi0gKipORUctMDAyKio6IEFuIGVzY2FsYXRpb24tY3JpdGVyaWEgbGlzdCBpcyBpbmhlcmVudGx5IGluY29tcGxldGUgYW5kIHdpbGwgbmVlZCBwZXJpb2RpYwogIHJlY2FsaWJyYXRpb24gYXMgdGhlIGV4ZWN1dGlvbiB0cmFjayByZWNvcmQgZ3Jvd3Mg4oCUIHRoZSBzYW1lIGRpc2NpcGxpbmUgYGhlcm1lcy8uaGVybWVzLm1kYAogIGFscmVhZHkgYXBwbGllcyB0byBpdHMgY29udGV4dC13aW5kb3cgdGFibGUgKCJ2ZXJpZnkgcGVyaW9kaWNhbGx5Li4uIG5ldmVyIGFzc3VtZSIpLgoKIyMjIE5ldXRyYWwgLyBUbyBtb25pdG9yCgotICoqTkVVLTAwMSoqOiBJcyB0aGlzIGRlZmF1bHQgZ2xvYmFsIChldmVyeSByZXBvIGdvdmVybmVkIGJ5IGB2aWJlY29kaW5nLWNvcGlsb3QtZ292ZXJuYW5jZWApCiAgb3Igb3ZlcnJpZGFibGUgcGVyIHJlcG8gLyBwZXIgQURSPyBBRFItMDAwMSBhbHJlYWR5IGxlZnQgdGhlIGVxdWl2YWxlbnQgcXVlc3Rpb24gb3BlbiBmb3IKICBgZXhlY3V0aW9uX21vZGVgICgiVGhlIGdyYWluIG9mIGBleGVjdXRpb25fbW9kZWAgaXMgY2hvc2VuIGJ5IEFEUiAobm90IGJ5IHJlcG8pLi4uIHRvCiAgcmVjb25zaWRlciBpZiB0aGUgQ2FwaXRhaW5lIHByZWZlcnMgYSBwZXItcmVwbyBkZWZhdWx0IikuIFRoZSBzYW1lIHF1ZXN0aW9uIGlzIGluaGVyaXRlZAogIGhlcmUgZm9yIHRoZSBtb2RlbC10aWVyIGRlZmF1bHQgYW5kIGlzIG5vdCByZXNvbHZlZCBieSB0aGlzIEFEUi4KCiMjIEltcGxlbWVudGF0aW9uCgpUaGlzIEFEUiBkb2N1bWVudHMgdGhlIGRlY2lzaW9uIG9ubHkg4oCUIG5vIGltcGxlbWVudGF0aW9uIGlzIGNhcnJpZWQgb3V0IGhlcmUuIE9uY2UgYWNjZXB0ZWQsCnRoZSBmb2xsb3dpbmcgd29yayBpcyB0cmFja2VkIGluIGEgKipzZXBhcmF0ZSBwbGFuKio6CgotICoqSU1QLTAwMSoqOiBBdXRob3IgYHRlbXBsYXRlcy9SVU5CT09LLXRlbXBsYXRlLm1kYCAoZG9lcyBub3QgZXhpc3QgeWV0KSwgaW5jbHVkaW5nIGEgd2F5CiAgdG8gcmVjb3JkIHRoZSBtb2RlbCB0aWVyIGFjdHVhbGx5IHVzZWQgcGVyIHN0ZXAgKGxvY2FsIGJ5IGRlZmF1bHQgLyBmcm9udGllciBwbHVzIHRoZQogIHRyaWdnZXJlZCBlc2NhbGF0aW9uIGNyaXRlcmlvbikuCi0gKipJTVAtMDAyKio6IEF1dGhvciBgYWdlbnRzL3J1bmJvb2stZ2VuZXJhdG9yLmFnZW50Lm1kYCAoZG9lcyBub3QgZXhpc3QgeWV0KSwgYW5hbG9nb3VzIHRvCiAgYGFnZW50cy9hZHItZ2VuZXJhdG9yLmFnZW50Lm1kYCwgZXhwZWN0ZWQgdG8gZW1iZWQgdGhlIDUgZXNjYWxhdGlvbiBjcml0ZXJpYSBhYm92ZSBhcyBhCiAgcHJlLWV4ZWN1dGlvbiBjaGVja2xpc3QuCi0gKipJTVAtMDAzKio6IFJlaW5mb3JjZSBgdGVtcGxhdGVzL0FEUi10ZW1wbGF0ZS5tZGAgYW5kIGBhZ2VudHMvYWRyLWdlbmVyYXRvci5hZ2VudC5tZGAgd2l0aAphIHdheSB0byBkZWNsYXJlL2F1ZGl0IHRoZSBleHBlY3RlZCBleGVjdXRpb24gbW9kZWwgdGllciBmb3IgYSBnaXZlbiBBRFIg4oCUIG1pcnJvcmluZyB0aGUKICBleGlzdGluZyBgYXV0aG9yZWRfYnlgIGZpZWxkIG9uIHRoZSBkZWNpc2lvbiBzaWRlIOKAlCB0byBjbG9zZSBwYXJ0IG9mIHRoZSBORUctMDAxIGdhcCBhYm92ZS4KCiMjIFJlZmVyZW5jZXMKCi0gKipSRUYtMDAxKio6IEFEUi0wMDAxIOKAlCBgZG9jcy9hZHIvQURSLTAwMDEtcHJkLWFkci1wbGFuLXJ1bmJvb2stbWV0aG9kb2xvZ3kubWRgCi0gKipSRUYtMDAyKio6IEFEUi0wMDIwIOKAlCBgaXRzaGFrZXItZGd4LXNwYXJrLVYyL2RvY3MvYWRyL0FEUi0wMDIwLWhlcm1lcy1idWlsZGVyLW9wZW5oYW5kcy1vcmNoZXN0cmF0aW9uLm1kYAotICoqUkVGLTAwMyoqOiBgZG9jcy9tZXRob2RvbG9neS9QUkQtQURSLVBMQU4tUlVOQk9PSy1XT1JLRkxPVy5tZGA=
+# ADR-0004 — Default execution tier for Plan/Runbook/dev/test/sec: Hermes on the local model, frontier model by exception
+
+**Date:** 2026-09-16
+**Status:** Proposed
+**Decision makers:** Capitaine (Jérémie Coste), Arcane (Hermes)
+**Technical context:** lowcodai governance ecosystem (templates, Copilot agents, methodology) — repo `vibecoding-copilot-governance`; applies to execution across every repo governed by this methodology.
+**authored_by:** frontier-model (this document is drafted by Claude Sonnet 5 in this session)
+**execution_mode:** hermes-solo (documentary/governance work — no OpenHands delegation needed)
+
+## Context
+
+ADR-0001 established the PRD → ADR → Plan → Runbook → execution chain and settled two
+distinct axes for it:
+
+- an `authored_by` field (`frontier-model` recommended, `local-model` allowed) for
+  **decision artifacts** (PRD, ADR) only. `docs/methodology/PRD-ADR-PLAN-RUNBOOK-WORKFLOW.md`
+  is explicit that this recommendation stops there: *"The Plan and the Runbook do not carry
+  this recommendation: they are execution artifacts, not decision artifacts."*
+- an `execution_mode` field (`hermes-solo` / `hermes-orchestrator-openhands`) with explicit
+  selection criteria (isolation, parallelism, stakes) for *who orchestrates* execution — a
+  single Hermes agent sequentially taking every role, versus Hermes delegating each role to
+  an isolated OpenHands app-conversation.
+
+What ADR-0001 never settled: once an execution mode is chosen — in practice almost always
+`hermes-solo`, the only mode that is actually mature today (it executed ADR-0001 itself and
+the ADR-0003 rename wave; Mode B remains gated on OpenHands prerequisites not met everywhere)
+— **which model tier** drives Hermes while it executes the Plan/Runbook roles (architecture,
+dev, test, security)? Nothing answers this today; each ADR is nominally left to arbitrate it
+case by case, which in practice has never been done explicitly. ADR-0003 illustrates the
+resulting confusion directly: its `authored_by` field reads `frontier-model
+(Qwen3.8-27B-NVFP4)`, conflating the model-tier axis with the decision-authorship axis this
+ADR now separates out.
+
+Two changes in constraint justify answering this now rather than continuing to leave it
+implicit:
+
+- **Cost.** The volume of downstream execution work (dev/test/sec across the four template
+  repos plus consumer repos such as `itshaker-dgx-spark-V2`, `HermesVPS2`, and future
+  instantiated projects) far exceeds the volume of PRD/ADR authoring. Running a frontier
+  model by default at that volume is not sustainable — the Capitaine already rejected a
+  "frontier model mandatory" option for PRD/ADR authoring in ADR-0001, for cost reasons; the
+  same argument applies with more force downstream, where volume is larger.
+- **Maturity of Mode A.** `hermes-solo` (via the `subagent-driven-development` skill) is now
+  a proven pattern in actual use — it executed ADR-0001 and the ADR-0003 rename wave — while
+  Mode B still depends on OpenHands prerequisites (`oh_pilot.py` / `openhands-pilot`
+  availability) that are not guaranteed on every target.
+
+This ADR fills the gap: it fixes the default *model tier* for execution (Hermes on the local
+model, by default), together with escalation criteria to a frontier model that are
+objectively verifiable — not a generic reflex of caution.
+
+**Scope note.** This decision is orthogonal to `execution_mode`. `execution_mode` (solo vs.
+orchestrator-openhands, already settled by ADR-0001 / the workflow's §Modes) is unchanged by
+this ADR. This ADR adds a second, independent axis — the *model tier* (local vs. frontier) —
+which can vary without changing `execution_mode`: an escalation to a frontier model does not
+by itself move Hermes out of `hermes-solo`. Hermes can stay in `hermes-solo` for a given task
+while that task is, for the duration of the escalation, driven by a frontier model (Claude
+Sonnet 5, GPT-5.6 Sol) instead of the local model.
+
+## Options considered
+
+| Option | Pros | Cons |
+|--------|------|------|
+| Status quo — no explicit default, arbitrated case by case per ADR | Maximum flexibility, no imposed bias | Repeated arbitration overhead on every ADR; drifts toward an unstated, undocumented "frontier by caution" default; does not scale to the current execution volume |
+| Frontier model by default for everything, local model by exception | Maximum quality/safety baseline, minimal drift risk | Cost-prohibitive at current volume (direct precedent: rejected by the Capitaine for PRD/ADR in ADR-0001, for cost reasons — applies more strongly downstream); contradicts the principle already applied (local model already allowed for reversible, low-stakes PRD/ADR); under-uses the proven maturity of Mode A |
+| Local model by default for everything, frontier model by exception on explicit criteria (**retained**) | Cost aligned with the actual execution volume; extends a principle already accepted (local model for reversible/low-stakes work) instead of inventing a new one; capitalizes on Mode A's proven track record; keeps escalation available and rule-bound rather than removed | Quality-drift risk without a systematic frontier safeguard — ADR-0001's mitigation (`authored_by` + recommended frontier review before "Accepted") covers only PRD/ADR, not Plan/Runbook; requires rigorously verifiable escalation criteria so the exception does not become a meaningless checkbox |
+
+## Decision
+
+We choose **local model by default for hermes-solo execution, frontier model by exception on
+explicit criteria** because it aligns cost with the actual volume of downstream execution
+work, extends a principle already accepted for PRD/ADR authoring rather than inventing a new
+one, and capitalizes on the proven maturity of Mode A instead of the still-partial Mode B.
+
+By default, Hermes running on the local model (Qwen-3.8-27B-NVFP4, DGX Spark, vLLM — the
+model identified as "default" in `hermes/.hermes.md`) takes on almost every role
+(architecture, dev, test, security) in `execution_mode: hermes-solo`, until an operational,
+functional solution is reached that can be improved through subsequent iterations. Recourse
+to a frontier model (Claude Sonnet 5, GPT-5.6 Sol) is the exception, triggered only by the
+explicit criteria below — never by a default reflex of caution.
+
+### Escalation criteria
+
+Each criterion below is individually sufficient to trigger escalation to a frontier model,
+and each is written to be objectively constatable during execution — never a vague "if
+needed" or "if complex enough" judgment call.
+
+1. **Public infrastructure / production.** The task modifies infrastructure exposed
+   publicly or a production deployment (e.g. reverse-proxy/DNS configuration, a public API
+   surface, any path or resource already tagged `production`/`public` under the target
+   repo's own conventions). Verifiable via file path or environment tag, not a value
+   judgment.
+2. **Sensitive data.** The task touches secrets, credentials, PII, or any path/config
+   already classified as sensitive (e.g. anything requiring Doppler secret injection under
+   existing `AGENTS.md` conventions, or a schema/table already classified as sensitive).
+   Verifiable via an existing secret-management flag, not a subjective read.
+3. **Significant recurring cost.** The task provisions or changes a resource whose
+   recurring cost exceeds **$50/month** (a new paid API subscription, an always-on compute
+   instance, a cloud resource billed monthly). Verifiable by comparing a stated dollar
+   figure against the threshold, checkable against the service's invoice or quote.
+4. **Ambiguity unresolved after 3 clarification attempts.** Hermes re-reads the source ADR,
+   the Plan, and the relevant `.hermes/plans/` history, and performs up to 3 documented
+   clarification passes (each logged as a checkpoint per the `hermes/.hermes.md`
+   discipline). If the ambiguity is still unresolved after the 3rd attempt, escalation is
+   mandatory rather than guessing. Verifiable via the count of documented clarification
+   attempts against the threshold of 3.
+5. **Contradiction between the ADR and the actual state of the code.** During execution,
+   Hermes detects that the source ADR's decision rests on an assumption (a dependency, a
+   version, an architectural fact) that the current state of the repo contradicts.
+   Verifiable via an explicit diff between the ADR's assumption and the observed repo state
+   (via code/`git` inspection), not an impression.
+
+## Consequences
+
+### Positive
+
+- **POS-001**: Cost aligned with the actual execution volume, which is far larger than the
+  PRD/ADR authoring volume — the bulk of execution runs on local inference with no
+  per-token billing.
+- **POS-002**: Faster iteration — Hermes on the local model can iterate without a round trip
+  to an external API, consistent with the "until an operational solution is reached...
+  improvable through subsequent iterations" framing of the decision (ship a working first
+  pass fast rather than block on frontier-model availability).
+- **POS-003**: Generalizes a pattern already proven in practice (Mode A / hermes-solo,
+  already used to execute ADR-0001 and ADR-0003) instead of leaving it implicit.
+
+### Negative
+
+- **NEG-001**: Quality-drift risk without a systematic frontier safeguard at the execution
+  layer. This should be stated honestly: ADR-0001's mitigation (`authored_by` audit field +
+  recommended frontier review before "Accepted") covers only PRD/ADR — the workflow document
+  explicitly states Plan and Runbook "do not carry this recommendation." This ADR therefore
+  introduces a mitigation gap at the execution layer that it does not itself close — only the
+  partial escalation criteria above apply. Closing this gap structurally (an audit discipline
+  for Plan/Runbook equivalent to `authored_by`) is deferred to the follow-up work listed under
+  Implementation.
+- **NEG-002**: An escalation-criteria list is inherently incomplete and will need periodic
+  recalibration as the execution track record grows — the same discipline `hermes/.hermes.md`
+  already applies to its context-window table ("verify periodically... never assume").
+
+### Neutral / To monitor
+
+- **NEU-001**: Is this default global (every repo governed by `vibecoding-copilot-governance`)
+  or overridable per repo / per ADR? ADR-0001 already left the equivalent question open for
+  `execution_mode` ("The grain of `execution_mode` is chosen by ADR (not by repo)... to
+  reconsider if the Capitaine prefers a per-repo default"). The same question is inherited
+  here for the model-tier default and is not resolved by this ADR.
+
+## Implementation
+
+This ADR documents the decision only — no implementation is carried out here. Once accepted,
+the following work is tracked in a **separate plan**:
+
+- **IMP-001**: Author `templates/RUNBOOK-template.md` (does not exist yet), including a way
+  to record the model tier actually used per step (local by default / frontier plus the
+  triggered escalation criterion).
+- **IMP-002**: Author `agents/runbook-generator.agent.md` (does not exist yet), analogous to
+  `agents/adr-generator.agent.md`, expected to embed the 5 escalation criteria above as a
+  pre-execution checklist.
+- **IMP-003**: Reinforce `templates/ADR-template.md` and `agents/adr-generator.agent.md` with
+  a way to declare/audit the expected execution model tier for a given ADR — mirroring the
+  existing `authored_by` field on the decision side — to close part of the NEG-001 gap above.
+
+## References
+
+- **REF-001**: ADR-0001 — `docs/adr/ADR-0001-prd-adr-plan-runbook-methodology.md`
+- **REF-002**: ADR-0020 — `itshaker-dgx-spark-V2/docs/adr/ADR-0020-hermes-builder-openhands-orchestration.md`
+- **REF-003**: `docs/methodology/PRD-ADR-PLAN-RUNBOOK-WORKFLOW.md`
