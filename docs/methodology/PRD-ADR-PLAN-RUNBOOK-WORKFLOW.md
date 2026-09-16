@@ -25,9 +25,12 @@ questions along the way — the arbitration has already happened, upstream, in t
 3. **Plan** (`plan` / `writing-plans` skill, `.hermes/plans/*.md`) — breakdown into 2-5 minute
    tasks, exact file paths, complete code, verification commands. Created in plan mode by an
    agent (Hermes or GitHub Copilot).
-4. **Runbook** (`docs/runbook/RUNBOOK-NNNN-<slug>.md`) — sequenced operational detail, written
-   before execution, never improvised during it.
-5. **Automated execution** — see §Modes.
+4. **Runbook** (`docs/runbooks/RUNBOOK-NNNN-<slug>.md`, `templates/RUNBOOK-template.md`,
+   `agents/runbook-generator.agent.md`) — sequenced operational detail, written before execution,
+   never improvised during it. A Runbook must never introduce a decision absent from its linked
+   ADR — if it encounters one, it stops and reports the gap instead of arbitrating it locally (see
+   ADR-0004).
+5. **Automated execution** — see §Modes and §Default execution tier.
 
 ## Model tier recommendation (non-blocking)
 
@@ -42,6 +45,22 @@ questions along the way — the arbitration has already happened, upstream, in t
   blocking gate.
 - The Plan and the Runbook do not carry this recommendation: they are execution artifacts, not
   decision artifacts.
+
+## Default execution tier (Plan/Runbook/dev/test/security)
+
+Per ADR-0004 (`docs/adr/ADR-0004-hermes-local-default-execution.md`), the model tier recommendation
+above covers only PRD and ADR authoring. Downstream of an accepted ADR — Plan, Runbook,
+development, test, and security work — the default executor is **Hermes running on the local
+model** (`unsloth/Qwen3.8-27B-NVFP4`, DGX Spark, vLLM), taking on nearly all roles until an
+operational, functional, iteratively-improvable solution is reached. Frontier-model execution
+(Claude Sonnet 5, GPT-5.6 Sol) is the **exception**, triggered only by the closed criteria list
+documented in `agents/runbook-generator.agent.md` (§Escalation Criteria) — not a default caution
+reflex. That agent file is the single source of truth for the escalation criteria; this document
+does not duplicate them.
+
+This is orthogonal to `execution_mode` (`hermes-solo` / `hermes-orchestrator-openhands`), which
+selects role-isolation strategy, not model tier — a Mode A or Mode B ADR can equally target a
+local-model or a frontier-model executor downstream.
 
 ## Execution modes
 
@@ -95,7 +114,10 @@ by `vibecoding-copilot-governance`.
 
 ## References
 
-- `templates/PRD-template.md`, `templates/ADR-template.md`
-- `agents/prd-generator.agent.md`, `agents/adr-generator.agent.md`
+- `templates/PRD-template.md`, `templates/ADR-template.md`, `templates/RUNBOOK-template.md`
+- `agents/prd-generator.agent.md`, `agents/adr-generator.agent.md`,
+  `agents/runbook-generator.agent.md`
 - Skills: `plan`, `writing-plans`, `subagent-driven-development`, `openhands-spark-ops`
 - ADR source of the Mode B pattern: `itshaker-dgx-spark-V2/docs/adr/ADR-0020-hermes-builder-openhands-orchestration.md`
+- ADR-0004 — `docs/adr/ADR-0004-hermes-local-default-execution.md` (default execution tier:
+  Hermes-on-local by default, frontier model on explicit escalation criteria only)

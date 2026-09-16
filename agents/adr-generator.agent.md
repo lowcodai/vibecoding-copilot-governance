@@ -54,6 +54,20 @@ Create an ADR as a markdown file following the standardized format below with th
 - Structure content for both machine parsing and human reference
 - Save the file to `/docs/adr/` with proper naming convention
 
+### 4. Density/self-sufficiency check (mandatory when `execution_mode` targets Hermes-on-local)
+
+Before finalizing, if `execution_mode` is `hermes-solo` or `hermes-orchestrator-openhands` with a
+local-model executor (the default per ADR-0004 — see
+`docs/adr/ADR-0004-hermes-local-default-execution.md`):
+
+- Confirm Context/Decision/Implementation Notes use coded bullets, not free prose.
+- Count words/lines; confirm the document stays within the indicative ~2,000 words / ~400 lines
+  cap (§Implementation Notes guidelines). If it doesn't, split the decision into multiple ADRs
+  rather than shipping an oversized one.
+- Confirm Implementation Notes satisfies IMP-001 through IMP-004 (exact paths, data contracts,
+  error behavior, rollback condition) — this is what lets a Runbook be generated from it without
+  the executing model re-arbitrating architecture (see `agents/runbook-generator.agent.md`).
+
 ---
 
 ## Required ADR Structure (template)
@@ -140,15 +154,38 @@ For each alternative:
 
 #### Implementation Notes
 
-- **IMP-001**: [Key implementation considerations]
-- **IMP-002**: [Migration or rollout strategy if applicable]
-- **IMP-003**: [Monitoring and success criteria]
+- **IMP-001**: [Exact file paths to be created or modified]
+- **IMP-002**: [Interfaces / data contracts crossed by this decision — signatures, schemas,
+  request/response shapes, message formats]
+- **IMP-003**: [Error behavior — what happens when a precondition of this decision fails at
+  runtime]
+- **IMP-004**: [Rollback condition — exact trigger and action to undo this decision]
+- **IMP-005+**: [Migration/rollout strategy, monitoring, success criteria, as applicable]
 
-**Guidelines:**
+**Guidelines — this section is a binding execution contract, never optional guidance:**
 
-- Include practical guidance for implementation
-- Note any migration steps required
-- Define success metrics
+- **Never** write "if applicable" or leave this section thin for a decision that changes code,
+  config, or infrastructure. IMP-001 through IMP-004 above are mandatory whenever the decision has
+  an implementation surface at all; only a purely process/governance ADR with no code or config
+  impact may omit IMP-002 (no data contract exists) or IMP-004 (nothing to roll back) — state that
+  explicitly rather than leaving the bullet out silently.
+- Exact file paths, not descriptions ("update `agents/runbook-generator.agent.md`", not "update the
+  relevant agent file").
+- This section must be sufficient for a Plan and then a Runbook
+  (`templates/RUNBOOK-template.md`) to be generalized by a local-model executor — see ADR-0004
+  (`docs/adr/ADR-0004-hermes-local-default-execution.md`) — **without re-arbitrating architecture**.
+  If writing this section requires making a decision not yet settled by the ADR's own Decision
+  section, that decision belongs in Decision/Consequences, not smuggled into Implementation Notes.
+
+**Density rule when `execution_mode` targets Hermes-on-local execution** (per ADR-0004 — the
+default unless a frontier-model exception criterion applies, see
+`agents/runbook-generator.agent.md`): the local model's context window is bounded (65,536 tokens
+for `unsloth/Qwen3.8-27B-NVFP4` — see `hermes/.hermes.md`). In that case, before finalizing:
+
+- Verify Context/Decision/Implementation Notes use coded bullets rather than free prose.
+- Verify the whole ADR stays within an indicative **~2,000 words / ~400 lines**, so it remains
+  self-sufficient without forcing a reload of the full linked PRD into working context. If the
+  decision genuinely needs more, split it into multiple ADRs rather than exceeding the limit.
 
 #### References
 
@@ -203,11 +240,15 @@ Before finalizing the ADR, verify:
 - [ ] At least 1 positive consequence documented
 - [ ] At least 1 negative consequence documented
 - [ ] At least 1 alternative documented with rejection reasons
-- [ ] Implementation notes provide actionable guidance
+- [ ] Implementation section is a binding execution contract, not optional guidance — exact file
+  paths, data contracts, error behavior, and rollback condition are present (or their absence is
+  explicitly justified for a pure governance ADR with no implementation surface)
 - [ ] References include related ADRs and resources
 - [ ] All coded items use proper format (e.g., POS-001, NEG-001)
 - [ ] Language is precise and avoids ambiguity
 - [ ] Document is formatted for readability
+- [ ] If `execution_mode` targets Hermes-on-local (the default per ADR-0004): coded bullets used
+  throughout, and the document stays within the ~2,000 words / ~400 lines density cap
 
 ---
 
