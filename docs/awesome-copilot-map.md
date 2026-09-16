@@ -21,6 +21,7 @@ Reference SHA: `dae77f24132c1d686c30fd5b29aee0d63668d1d2`
 | Agent | base | infra | ai | app |
 |-------|:----:|:-----:|:--:|:---:|
 | `adr-generator` | ✓ | ✓ | ✓ | ✓ |
+| `runbook-generator` | ✓ | ✓ | ✓ | ✓ |
 | `ai-readiness-reporter` | — | — | ✓ | — |
 | `agent-governance-reviewer` | — | — | ✓ | — |
 | `ai-team-dev` | — | — | ✓ | opt |
