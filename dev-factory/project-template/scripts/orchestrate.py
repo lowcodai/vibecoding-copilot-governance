@@ -226,6 +226,10 @@ class Orchestrator:
     def run_agent(self, role: str, work_order: str, cwd: Path) -> dict:
         agent = self.cfg["agents"][role]
         gw = self.cfg["gateways"][agent["gateway"]]
+        missing = [f for f in agent.get("required_files", []) if not (cwd / f).is_file()]
+        if missing:
+            # Never run a role unguarded: hooks/settings must be committed on the base branch.
+            return {"_fatal": f"{role} preflight: missing in worktree (commit them on the base branch): {', '.join(missing)}"}
         runner = self.cfg["runner"]
         role_prompt = (self.repo / agent["role_prompt"]).resolve()
         order_file = self.run_dir / f"{role}-work-order.md"
@@ -254,6 +258,7 @@ class Orchestrator:
             "DISABLE_TELEMETRY": "1",
             "ORCHESTRATE_ROLE": role,
             "ORCHESTRATE_TASK": self.task_id,
+            "CLAUDE_HOOK_LOG_DIR": str(self.run_dir / "hooks"),
         })
         key_env = gw.get("api_key_env")
         if key_env and os.environ.get(key_env):
@@ -289,6 +294,10 @@ class Orchestrator:
         retries = int(self.cfg.get("limits", {}).get("agent_result_parse_retries", 1))
         for attempt in range(retries + 1):
             result = self.run_agent(role, work_order, cwd)
+            if "_fatal" in result:
+                result = {"_error": result["_fatal"]}
+                self.log(result["_error"])
+                break
             if "_error" not in result:
                 break
             self.log(f"{role.upper()} attempt {attempt + 1} failed: {result['_error']}")
@@ -296,8 +305,10 @@ class Orchestrator:
         return result
 
     # -- validations (deterministic, run by the orchestrator, never by an agent) --
-    def run_validations(self, wt: Path) -> list[dict]:
+    def run_validations(self, wt: Path, base_sha: str) -> list[dict]:
         meta, _ = parse_task(self.task_path)
+        env = {**os.environ, "ORCHESTRATE_BASE_SHA": base_sha, "ORCHESTRATE_TASK": self.task_id,
+               "CLAUDE_HOOK_LOG_DIR": str(self.run_dir / "hooks")}
         commands = list(self.cfg.get("validation", {}).get("commands", [])) + list(meta.get("validations") or [])
         tail_n = int(self.cfg.get("validation", {}).get("log_tail_lines", 200))
         results = []
@@ -307,7 +318,7 @@ class Orchestrator:
             name, run = c["name"], c["run"]
             try:
                 proc = subprocess.run(run, shell=True, cwd=wt, text=True, capture_output=True,
-                                      timeout=c.get("timeout_sec", 900))
+                                      timeout=c.get("timeout_sec", 900), env=env)
                 code, out = proc.returncode, proc.stdout + proc.stderr
             except subprocess.TimeoutExpired as exc:
                 code, out = 124, f"TIMEOUT after {exc.timeout}s"
@@ -426,7 +437,7 @@ class Orchestrator:
             return
 
         if s == TEST:
-            validations = self.run_validations(wt)
+            validations = self.run_validations(wt, st["base_sha"])
             write_json_atomic(self.run_dir / "validations.json", {"results": validations})
             res = self.call_role("test", self.order_test(st, validations), wt)
             verdict = res.get("verdict") if "_error" not in res else "BLOCKED"

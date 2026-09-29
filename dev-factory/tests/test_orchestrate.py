@@ -45,6 +45,11 @@ FAKE_AGENT = textwrap.dedent(
             res = {"status": "DONE", "summary": "forgot to commit"}
         elif action == "blocked":
             res = {"status": "BLOCKED", "reason": "ADR gap"}
+        elif action == "leak":
+            Path(f"cfg_{n}.py").write_text("K = '" + "AKIA" + "Q7W3E5R8T1Y4U6I9" + "'\n")
+            subprocess.run(["git", "add", "-A"], check=True)
+            subprocess.run(["git", "commit", "-qm", f"feat: leak {n}"], check=True)
+            res = {"status": "DONE", "summary": "done"}
         else:
             Path(f"feature_{n}.txt").write_text("x\n")
             subprocess.run(["git", "add", "-A"], check=True)
@@ -167,6 +172,26 @@ class OrchestrateTest(unittest.TestCase):
     def test_lock_prevents_concurrent_runs(self):
         with orchestrate.RepoLock(self.repo):
             self.assertEqual(self.run_task(), 1)
+
+    def test_dev_preflight_blocks_when_hooks_are_not_committed(self):
+        sh(["git", "rm", "-q", ".claude/hooks/tool_guardian.py"], self.repo)
+        sh(["git", "commit", "-qm", "drop hook"], self.repo)
+        self.assertEqual(self.run_task(), 2)
+        self.assertIn("tool_guardian.py", self.state()["history"][-1]["reason"])
+
+    def test_secrets_scan_validation_sends_leak_back_to_dev(self):
+        cfg_path = self.repo / ".ai" / "orchestration.yaml"
+        cfg = yaml.safe_load(cfg_path.read_text())
+        template_cfg = yaml.safe_load((TEMPLATE / ".ai" / "orchestration.yaml").read_text())
+        cfg["validation"]["commands"] = [c for c in template_cfg["validation"]["commands"] if c["name"] == "secrets-scan"]
+        cfg_path.write_text(yaml.safe_dump(cfg))
+        sh(["git", "commit", "-qam", "cfg"], self.repo)
+        os.environ["FAKE_DEV"] = "leak"
+        self.assertEqual(self.run_task(), 2)
+        st = self.state()
+        self.assertEqual(st["state"], orchestrate.BLOCKED)
+        self.assertIn("tests failed (cycle 1)", [h["reason"] for h in st["history"]])
+        self.assertIn("AWS_ACCESS_KEY", (self.repo / ".ai/runs/TASK-0001/logs/secrets-scan.log").read_text())
 
     def test_resume_continues_from_persisted_state(self):
         orch = orchestrate.Orchestrator(self.repo, "TASK-0001")

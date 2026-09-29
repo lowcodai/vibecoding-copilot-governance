@@ -65,7 +65,7 @@
   AGENTS.md/ADR/PRD itself (98k); REVIEW gets acceptance criteria, ADR Decision/Implementation
   excerpts and the diff (32k); TEST gets acceptance criteria and validation results (32k).
   REVIEW and TEST run with `--bare` (no CLAUDE.md auto-load, hooks, memory, prefetch) so that
-  Claude Code's own overhead fits in 32k.
+  Claude Code's own overhead fits in 32k; they only have read tools. DEV keeps hooks.
 - **DEC-008**: Temperature, output caps, per-route context caps and Qwen thinking mode are
   **enforced by the gateways** (Claude Code does not expose temperature).
 - **DEC-009**: The model-tier default of ADR-0004 is unchanged (local model by default,
@@ -103,8 +103,11 @@
 - **IMP-001**: `dev-factory/project-template/` — files copied into every consumer repo:
   `.ai/orchestration.yaml` (project contract), `.ai/tasks/TASK-template.md` (task contract),
   `.ai/roles/{dev,review,test}.md` (role prompts and JSON result contracts),
-  `.claude/settings.json` (deny rules), `CLAUDE.md` (short, no AGENTS.md import),
-  `scripts/orchestrate.py` (state machine).
+  `.claude/settings.json` (deny rules + hooks), `.claude/hooks/tool_guardian.py` and
+  `.claude/hooks/secrets_scanner.py` (Claude Code ports of the Copilot hooks, fail-closed),
+  `CLAUDE.md` (short, no AGENTS.md import), `scripts/orchestrate.py` (state machine).
+  DEV runs without `--bare` so the hooks apply; a `secrets-scan` validation re-checks every
+  task branch independently of hooks.
 - **IMP-002**: `dev-factory/gateways.yaml` — reference gateway profiles and the enforcement
   checklist (temperature override, max_tokens clamp, per-route prompt cap, thinking off).
 - **IMP-003**: `dev-factory/hermes-skill/sequential-coding-team/SKILL.md` — the Hermes skill.

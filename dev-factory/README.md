@@ -22,7 +22,9 @@ User ─► Hermes (Engineering Manager, gateway hermes-orchestrator 98k/2k/0.2)
 | `project-template/.ai/orchestration.yaml` | `.ai/orchestration.yaml` | agents, gateways, transitions limits, validation commands, git policy |
 | `project-template/.ai/tasks/TASK-template.md` | `.ai/tasks/TASK-template.md` | task contract skeleton (`orchestrate.py new`) |
 | `project-template/.ai/roles/*.md` | `.ai/roles/*.md` | role prompts + JSON result contracts |
-| `project-template/.claude/settings.json` | `.claude/settings.json` | deny rules (push/merge/rebase, secrets, orchestrator files) |
+| `project-template/.claude/settings.json` | `.claude/settings.json` | deny rules (push/merge/rebase, secrets, orchestrator files) + hook wiring |
+| `project-template/.claude/hooks/tool_guardian.py` | `.claude/hooks/tool_guardian.py` | PreToolUse (Bash): blocks destructive, exfiltrating or policy-breaking commands |
+| `project-template/.claude/hooks/secrets_scanner.py` | `.claude/hooks/secrets_scanner.py` | PreToolUse (Write/Edit, `git commit`) + `--range` CLI used as a validation |
 | `project-template/CLAUDE.md` | `CLAUDE.md` | short project memory for interactive sessions |
 | `project-template/scripts/orchestrate.py` | `scripts/orchestrate.py` | the state machine |
 | `gateways.yaml` | — (infra reference) | gateway profiles + enforcement checklist |
@@ -46,11 +48,28 @@ python3 scripts/orchestrate.py rework TASK-0042 --feedback "..."   # human sends
 Per run, `.ai/runs/TASK-0042/` holds `state.json`, `{dev,review,test}-result.json`,
 `*-work-order.md`, `*-raw-output.txt`, `validations.json`, `logs/*.log`, `timeline.log`.
 
+## Guard rails: hooks, deny rules, deterministic scan
+
+| Layer | Applies to | Enforced by |
+|---|---|---|
+| `--tools` list | every role | Claude Code (REVIEW/TEST only have Read, Glob, Grep) |
+| Deny rules (`.claude/settings.json`) | every role | Claude Code permissions |
+| `tool_guardian.py` (PreToolUse, Bash) | DEV + interactive sessions | hook, exit 2 blocks, fail-closed |
+| `secrets_scanner.py` (PreToolUse, Write/Edit and `git commit`) | DEV + interactive sessions | hook, exit 2 blocks, fail-closed |
+| `secrets-scan` validation (`--range base..HEAD`) | every task, before TEST | orchestrator — independent of hooks |
+
+DEV runs without `--bare` (with `--setting-sources project`) precisely so the hooks run; the
+orchestrator refuses to start DEV (`BLOCKED`) if `.claude/settings.json` or the hook scripts are
+not committed on the base branch. Hook logs go to `.ai/runs/<task>/hooks/*.jsonl` during
+orchestrated runs (`CLAUDE_HOOK_LOG_DIR`), `~/.local/state/claude-hooks/<project>/` otherwise —
+never inside the worktree, which must stay clean. Overrides (`GUARD_MODE`, `TOOL_GUARD_ALLOWLIST`,
+`SECRETS_ALLOWLIST`, `SECRETS_BLOCK_SEVERITY`, `SKIP_*`) are environment variables set by humans.
+
 ## Design choices that matter on a 27B local model
 
 - **Validation is deterministic.** The orchestrator runs lint/test commands itself; TEST only
   interprets them, and a red command can never become `PASS`.
-- **REVIEW/TEST run with `--bare`.** Without it, Claude Code auto-loads CLAUDE.md, memory and
+- **REVIEW/TEST run with `--bare`, DEV does not.** Without it, Claude Code auto-loads CLAUDE.md, memory and
   hooks into a 32k window. Their context is assembled by the orchestrator (head+tail truncation
   when needed, flagged in the work order).
 - **CLAUDE.md does not import AGENTS.md.** Imports are loaded into every session; DEV reads

@@ -21,7 +21,7 @@ Legend: **[fixed]** handled in this change set · **[open]** recommended follow-
 | A2 | Mode A makes Hermes write code itself; the target says Hermes never codes. No independent review of code in Mode A. | methodology, ADR-0004 | [fixed] ADR-0005 narrows `hermes-solo` to docs/ops |
 | A3 | Mode B = OpenHands app-conversations in parallel — a second agent runtime, never qualified outside one host, and parallelism is precisely what a single DGX Spark cannot afford. | methodology, ADR/RUNBOOK templates | [fixed] deprecated, replaced by `hermes-sequential-team` |
 | A4 | No orchestration artefacts at all: no `.ai/orchestration.yaml`, task contract, state machine, run persistence, worktree policy, loop bounds or REVIEW/TEST verdict vocabulary. | — | [fixed] `dev-factory/` |
-| A5 | Everything agent-facing is GitHub Copilot format (`.github/agents/*.agent.md`, Copilot `hooks.json` with `preToolUse`/`userPromptSubmitted`, `@agent` usage). Claude Code reads none of it: its hooks live in `.claude/settings.json` with a different payload (`tool_name`/`tool_input`). | `agents/`, `hooks/`, generated `AGENTS.md` | [fixed] Claude Code settings added; [open] port `tool-guardian`/`secrets-scanner` to Claude Code hooks for interactive sessions |
+| A5 | Everything agent-facing is GitHub Copilot format (`.github/agents/*.agent.md`, Copilot `hooks.json` with `preToolUse`/`userPromptSubmitted`, `@agent` usage). Claude Code reads none of it: its hooks live in `.claude/settings.json` with a different payload (`tool_name`/`tool_input`). | `agents/`, `hooks/`, generated `AGENTS.md` | [fixed] Claude Code settings added; `tool-guardian` and `secrets-scanner` ported to Claude Code `PreToolUse` hooks (`.claude/hooks/`), active for DEV and interactive sessions |
 | A6 | `AGENTS.md` is defined as "the list of Copilot agents" and generated as such; in the target it is the project rulebook every agent reads first. | `standards/documentation-standards.md`, `apply-template.sh` | [fixed] generated as a rulebook (commands, map, workflow, boundaries, DoD, per-type rules); standard updated |
 | A7 | Several Copilot agents pin cloud models (`gpt-4o`, `GPT-4.1`, `GPT-5`, `Claude Sonnet 4.5`) — meaningless on a local-only stack. | `agents/agent-governance-reviewer`, `accessibility*`, `ai-readiness-reporter` | [open] |
 | A8 | `ai-team-dev` ("Nova, Sage, Milo") tells the model to "make a reasonable decision" on ambiguity, push and open PRs, and reads `PROJECT_BRIEF.md` / sprint files that no template creates — contradicts ADR-0004's "never decide what the ADR left open" and ADR-0005's "never push". | `agents/ai-team-dev.agent.md` | [open] remove (superseded by the DEV role) |
@@ -105,7 +105,6 @@ Key design decisions, driven by the model/gateway limits:
 3. ~~Rewrite the generated `AGENTS.md` as the rulebook (A6).~~ Done; the `AGENTS.md` shipped in
    the `vibecoding-template-*` repos (copied instead when a template clone sits next to the
    bootstrap) must be aligned the same way.
-4. Port `tool-guardian` and `secrets-scanner` to Claude Code `PreToolUse` hooks for interactive
-   DEV sessions (headless runs rely on `--tools` + deny rules).
+4. ~~Port `tool-guardian` and `secrets-scanner` to Claude Code hooks.~~ Done (`dev-factory/project-template/.claude/hooks/`).
 5. Clean the ADR ledger (B1–B3) with status-line annotations only.
 6. Make `awesome-copilot-bundles.yml` the only source for sync (B4, B8) or delete the YAML.
