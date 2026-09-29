@@ -4,7 +4,7 @@
 # ADR-XXXX — Decision title
 
 **Date:** YYYY-MM-DD
-**Status:** Proposed | In progress | Accepted | Rejected | Deprecated | Superseded by ADR-YYYY
+**Status:** Proposed | In progress | Accepted | Rejected | Withdrawn | Deprecated | Superseded by ADR-YYYY
 **Decision makers:** <!-- Names or roles -->
 **Technical context:** <!-- Stack, version, etc. -->
 **authored_by:** frontier-model (recommended) | local-model

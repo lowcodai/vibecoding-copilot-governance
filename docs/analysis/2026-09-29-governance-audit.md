@@ -32,9 +32,9 @@ Legend: **[fixed]** handled in this change set · **[open]** recommended follow-
 
 | # | Finding | Where | Status |
 |---|---|---|---|
-| B1 | Two files numbered ADR-0004 (one accepted, one "superseded" draft with a different escalation list: $50 & 3 attempts vs €50 & 2 attempts, 5 vs 6 criteria). | `docs/adr/` | [open] move the draft to `docs/adr/rejected/` or renumber; never keep two ADRs with one number |
-| B2 | ADR-0001 status "Superseded by ADR-0002" while ADR-0002 only supersedes its *language* clause — the methodology it created is still in force. It also cites `templates/*.fr.md` / `*.en.md` that no longer exist. | ADR-0001 | [open] status → "Accepted — language clause superseded by ADR-0002; Mode B superseded by ADR-0005" |
-| B3 | ADR-0003 `authored_by: frontier-model (Qwen3.8-27B-NVFP4)` — Qwen is the local model. Same ADR: "until the rename wave completes, then `vibecoding-copilot-governance`" (post-rename search/replace artefact). ADR-0004 still says "currently `itshaker-copilot-governance` on disk". | ADR-0003, ADR-0004 | [open] annotate (status-line notes only, ADR immutability) |
+| B1 | Two files numbered ADR-0004 (one accepted, one "superseded" draft with a different escalation list: $50 & 3 attempts vs €50 & 2 attempts, 5 vs 6 criteria). | `docs/adr/` | [fixed] draft moved to `docs/adr/withdrawn/`, status Withdrawn |
+| B2 | ADR-0001 status "Superseded by ADR-0002" while ADR-0002 only supersedes its *language* clause — the methodology it created is still in force. It also cites `templates/*.fr.md` / `*.en.md` that no longer exist. | ADR-0001 | [fixed] status corrected, registry note |
+| B3 | ADR-0003 `authored_by: frontier-model (Qwen3.8-27B-NVFP4)` — Qwen is the local model. Same ADR: "until the rename wave completes, then `vibecoding-copilot-governance`" (post-rename search/replace artefact). ADR-0004 still says "currently `itshaker-copilot-governance` on disk". | ADR-0003, ADR-0004 | [fixed] registry notes; ADR-0003 text rewritten by the rename tooling restored from `b3444d9` |
 | B4 | The awesome-copilot map, `awesome-copilot-bundles.yml` and the hard-coded lists in `sync-governance.sh` disagree: `fix-broken-links` (map: base yes/infra no; script: base no/infra yes), `devops-core-principles` (map: base+infra; script: all types), `ai-team-dev` on m365 (map: no; script: yes), `containerization` on app (map: optional; script: mandatory), `ai-readiness-reporter` on m365 (map: default; bundle: optional), `prd-generator` absent from the map. | `docs/awesome-copilot-map.md`, bootstrap | [open] make the YAML the only source (see C2) and generate the map from it |
 | B5 | m365 bundle references agents and instructions that do not exist in this repo (`declarative-agents-architect`, `mcp-m365-agent-expert`, `declarative-agents-microsoft365`, `mcp-m365-copilot`, `security-and-owasp`) — skipped silently. `session-auto-commit` hook is referenced in the map, bundles and two policies but does not exist. | bundles, map, policies | [open] |
 | B6 | `tool-guardian/hooks.json` points to `hooks/tool-guardian/guard-tool.sh`; every other hook points to `.github/hooks/...`. After sync the tool guardian path is wrong, i.e. the one blocking hook never runs. | `hooks/tool-guardian/hooks.json` | [open] one-line fix if the Copilot layer is kept |
@@ -106,5 +106,5 @@ Key design decisions, driven by the model/gateway limits:
    the `vibecoding-template-*` repos (copied instead when a template clone sits next to the
    bootstrap) must be aligned the same way.
 4. ~~Port `tool-guardian` and `secrets-scanner` to Claude Code hooks.~~ Done (`dev-factory/project-template/.claude/hooks/`).
-5. Clean the ADR ledger (B1–B3) with status-line annotations only.
+5. ~~Clean the ADR ledger (B1–B3).~~ Done — see `docs/adr/README.md`.
 6. Make `awesome-copilot-bundles.yml` the only source for sync (B4, B8) or delete the YAML.

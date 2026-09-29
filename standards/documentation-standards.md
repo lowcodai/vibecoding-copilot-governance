@@ -45,7 +45,7 @@ Structure of an ADR:
 # ADR-XXXX — Decision title
 
 **Date:** YYYY-MM-DD
-**Status:** Proposed | In Progress | Accepted | Rejected | Deprecated | Superseded by ADR-YYYY
+**Status:** Proposed | In Progress | Accepted | Rejected | Withdrawn | Deprecated | Superseded by ADR-YYYY
 **Decision-makers:** <list>
 
 ## Context
