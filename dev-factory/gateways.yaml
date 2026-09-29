@@ -1,0 +1,61 @@
+# dev-factory/gateways.yaml — reference gateway profiles (ADR-0005)
+#
+# One inference backend: vLLM serving Qwen-3.8-27B-NVFP4 on a DGX Spark (Founders Edition).
+# One gateway (proxy route) per agent role, so that each role gets its own hard limits no
+# matter what the client sends. The client-side values in .ai/orchestration.yaml must match.
+#
+# Why gateways enforce the limits (and not the clients):
+#   - Claude Code does not expose `temperature`; only the gateway can pin it.
+#   - vLLM's --max-model-len is global (98k here); the 32k roles need a per-route cap.
+#   - A single place to disable Qwen "thinking" where the 2k output cap cannot afford it.
+
+backend:
+  engine: vllm
+  model: qwen3.8-27b-nvfp4
+  max_model_len: 98304        # >= the largest role context (98k)
+  max_num_seqs: 2             # Hermes (idle while waiting) + exactly one Claude Code role
+  enable_prefix_caching: true # Claude Code re-sends the whole conversation every turn
+  api: [openai, anthropic-messages]   # Claude Code needs /v1/messages (native vLLM or via a proxy)
+
+profiles:
+  hermes-orchestrator:
+    client: hermes            # OpenAI-compatible
+    context_tokens: 98000
+    max_output_tokens: 2000
+    temperature: 0.2
+    thinking: false           # 2k output: reasoning tokens would crowd out the answer
+    notes: >
+      Writes task contracts and summaries only. Large files are written in several
+      write_file calls, each verified by read-back (hermes/.hermes.md).
+
+  cc-dev:
+    client: claude-code
+    context_tokens: 98000
+    max_output_tokens: 4000
+    temperature: 0.2
+    thinking: optional        # if enabled, reasoning counts against the 4k cap
+    notes: Only role allowed to edit files and commit.
+
+  cc-review:
+    client: claude-code
+    context_tokens: 32000
+    max_output_tokens: 2000
+    temperature: 0.1
+    thinking: false
+    notes: Receives acceptance criteria + ADR decisions + git diff only.
+
+  cc-test:
+    client: claude-code
+    context_tokens: 32000
+    max_output_tokens: 2000
+    temperature: 0.1
+    thinking: false
+    notes: Receives acceptance criteria + validation exit codes and log tails only.
+
+# Gateway enforcement checklist (per profile):
+#   1. override `temperature` with the profile value (ignore the client's);
+#   2. clamp `max_tokens` to max_output_tokens;
+#   3. reject (HTTP 400) requests whose prompt exceeds context_tokens - max_output_tokens,
+#      so an oversized REVIEW/TEST prompt fails loudly instead of being silently truncated;
+#   4. set chat_template_kwargs.enable_thinking=false where thinking: false;
+#   5. authenticate each route with its own key (CC_DEV_GATEWAY_KEY, ...), log per route.

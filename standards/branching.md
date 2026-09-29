@@ -10,6 +10,7 @@ fix/*         ← bug fixes
 docs/*        ← documentation
 chore/*       ← maintenance, refactoring
 hotfix/*      ← urgent production fixes
+agent/TASK-*  ← sequential Claude Code team, created by scripts/orchestrate.py (ADR-0005)
 ```
 
 ## Rules
@@ -17,7 +18,9 @@ hotfix/*      ← urgent production fixes
 - `main` is protected: no direct push, PR required
 - PRs on `main` require at least 1 approval
 - PRs must pass CI checks before merge
-- Delete branches after merge
+- Delete branches after merge (for `agent/TASK-*`, also `git worktree remove` the task worktree)
+- Agents never push, merge or rebase: an `agent/TASK-*` branch is pushed and merged by a human
+  after the task reached `APPROVED`
 - Name branches in lowercase kebab-case: `feat/my-component`
 
 ## Naming conventions
