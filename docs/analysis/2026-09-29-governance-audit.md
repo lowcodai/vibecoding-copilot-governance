@@ -22,7 +22,7 @@ Legend: **[fixed]** handled in this change set · **[open]** recommended follow-
 | A3 | Mode B = OpenHands app-conversations in parallel — a second agent runtime, never qualified outside one host, and parallelism is precisely what a single DGX Spark cannot afford. | methodology, ADR/RUNBOOK templates | [fixed] deprecated, replaced by `hermes-sequential-team` |
 | A4 | No orchestration artefacts at all: no `.ai/orchestration.yaml`, task contract, state machine, run persistence, worktree policy, loop bounds or REVIEW/TEST verdict vocabulary. | — | [fixed] `dev-factory/` |
 | A5 | Everything agent-facing is GitHub Copilot format (`.github/agents/*.agent.md`, Copilot `hooks.json` with `preToolUse`/`userPromptSubmitted`, `@agent` usage). Claude Code reads none of it: its hooks live in `.claude/settings.json` with a different payload (`tool_name`/`tool_input`). | `agents/`, `hooks/`, generated `AGENTS.md` | [fixed] Claude Code settings added; [open] port `tool-guardian`/`secrets-scanner` to Claude Code hooks for interactive sessions |
-| A6 | `AGENTS.md` is defined as "the list of Copilot agents" and generated as such; in the target it is the project rulebook every agent reads first. | `standards/documentation-standards.md`, `apply-template.sh` | [open] regenerate `AGENTS.md` as a rulebook (stack, commands, conventions, boundaries) |
+| A6 | `AGENTS.md` is defined as "the list of Copilot agents" and generated as such; in the target it is the project rulebook every agent reads first. | `standards/documentation-standards.md`, `apply-template.sh` | [fixed] generated as a rulebook (commands, map, workflow, boundaries, DoD, per-type rules); standard updated |
 | A7 | Several Copilot agents pin cloud models (`gpt-4o`, `GPT-4.1`, `GPT-5`, `Claude Sonnet 4.5`) — meaningless on a local-only stack. | `agents/agent-governance-reviewer`, `accessibility*`, `ai-readiness-reporter` | [open] |
 | A8 | `ai-team-dev` ("Nova, Sage, Milo") tells the model to "make a reasonable decision" on ambiguity, push and open PRs, and reads `PROJECT_BRIEF.md` / sprint files that no template creates — contradicts ADR-0004's "never decide what the ADR left open" and ADR-0005's "never push". | `agents/ai-team-dev.agent.md` | [open] remove (superseded by the DEV role) |
 | A9 | Instruction files are 600–870 lines each (a11y 731, docker 681, GH Actions 607, prompt safety 867). Any of them loaded into a 32k REVIEW/TEST window would consume a third of it. | `instructions/` | [open] keep for Copilot, never import into CLAUDE.md; distil 20-line checklists if needed |
@@ -102,7 +102,9 @@ Key design decisions, driven by the model/gateway limits:
 1. Accept or amend ADR-0005, then run one real task and calibrate `overhead_tokens`.
 2. Decide the fate of the Copilot layer (A5, A7–A9, C4): either a `compat/copilot/` folder that
    is no longer synced by default, or removal. Until then, nothing in it is loaded by Claude Code.
-3. Rewrite the generated `AGENTS.md` as the rulebook (A6); keep it ≤ ~1,500 tokens.
+3. ~~Rewrite the generated `AGENTS.md` as the rulebook (A6).~~ Done; the `AGENTS.md` shipped in
+   the `vibecoding-template-*` repos (copied instead when a template clone sits next to the
+   bootstrap) must be aligned the same way.
 4. Port `tool-guardian` and `secrets-scanner` to Claude Code `PreToolUse` hooks for interactive
    DEV sessions (headless runs rely on `--tools` + deny rules).
 5. Clean the ADR ledger (B1–B3) with status-line annotations only.
