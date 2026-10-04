@@ -99,7 +99,7 @@ Key design decisions, driven by the model/gateway limits:
 
 ## 5. Recommended next steps
 
-1. Accept or amend ADR-0005, then run one real task and calibrate `overhead_tokens`.
+1. ~~Accept or amend ADR-0005.~~ Accepted 2026-10-04. Next: run one real task and calibrate `overhead_tokens`.
 2. Decide the fate of the Copilot layer (A5, A7–A9, C4): either a `compat/copilot/` folder that
    is no longer synced by default, or removal. Until then, nothing in it is loaded by Claude Code.
 3. ~~Rewrite the generated `AGENTS.md` as the rulebook (A6).~~ Done; the `AGENTS.md` shipped in

@@ -1,7 +1,7 @@
 # ADR-0005 — Sequential Claude Code team (DEV / REVIEW / TEST) orchestrated by Hermes
 
 **Date:** 2026-09-29
-**Status:** Proposed
+**Status:** Accepted (2026-10-04, Capitaine)
 **Decision-makers:** Capitaine (Jérémie Coste)
 **Technical context:** DGX Spark (Founders Edition), vLLM serving `Qwen-3.8-27B-NVFP4`, one gateway per agent role, Hermes as Engineering-Manager agent, Claude Code as the coding runtime.
 **authored_by:** frontier-model

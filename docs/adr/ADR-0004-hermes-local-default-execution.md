@@ -1,7 +1,7 @@
 # ADR-0004 — Hermes-on-local-model executes by default; frontier model is the exception
 
 **Date:** 2026-09-16
-**Status:** Accepted
+**Status:** Accepted — amended by ADR-0005 (who executes code on the local model)
 **Decision-makers:** Capitaine (Jérémie Coste), Arcane (Hermes)
 **Technical context:** lowcodai governance ecosystem (templates, Copilot agents, methodology) — repo `vibecoding-copilot-governance` (currently `itshaker-copilot-governance` on disk, pending ADR-0003 rename completion).
 **authored_by:** frontier-model (this ADR is authored by Claude Sonnet 5, at the Capitaine's request, 2026-09-16)
@@ -11,7 +11,7 @@
 > `vibecoding-copilot-governance` on disk too). The concurrent draft cited in REF-006 moved to
 > `docs/adr/withdrawn/` so that `docs/adr/` holds a single ADR per number. The 65,536-token
 > figure cited below was replaced by the 98k/2k gateway limits (ADR-0005). IMP-005
-> (propagation) was delivered in `vibecoding-bootstrap` commit `2dccc39`. Proposed ADR-0005
+> (propagation) was delivered in `vibecoding-bootstrap` commit `2dccc39`. ADR-0005
 > amends who executes code on the local model; the model-tier decision below is unchanged.
 
 ## Context
