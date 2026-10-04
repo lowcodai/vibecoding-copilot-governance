@@ -10,32 +10,41 @@ This repository is the **single source of truth** for:
 - Security and governance hooks
 - Recommended agents and skills
 - Policies (licenses, secrets, branching)
-- ADR, BACKLOG, ROADMAP, ISSUE_TEMPLATE, PR_TEMPLATE templates
+- PRD, ADR, RUNBOOK, ISSUE_TEMPLATE, PR_TEMPLATE templates
+- The sequential Claude Code team kit (`dev-factory/`, ADR-0005)
 
 ## Structure
 
 ```
 vibecoding-copilot-governance/
 ├── standards/          ← Conventions (branching, commits, PR, naming, documentation)
-├── instructions/       ← .instructions.md files sourced from github/awesome-copilot
-├── hooks/              ← Copilot hooks (tool-guardian, secrets-scanner, etc.)
-├── agents/             ← Recommended .agent.md files
-├── skills/             ← awesome-copilot skills (directories)
-├── plugins/            ← awesome-copilot plugin references
-├── policies/           ← Policies: AI, secrets, licenses, branch protection
-├── templates/          ← ADR, BACKLOG, ROADMAP, ISSUE_TEMPLATE, PR_TEMPLATE templates
+├── policies/           ← Policies: AI usage, secrets, licenses, branch protection
+├── templates/          ← PRD, ADR, RUNBOOK, ISSUE_TEMPLATE, PR_TEMPLATE
+├── docs/               ← ADRs, methodology, audits, awesome-copilot map
 ├── hermes/             ← Hermes continuity contract (.hermes.md + docs/operations/ skeleton)
-├── docs/               ← Usage and strategy documentation
-├── scripts/            ← Utility scripts (sync-to-repo.sh)
+├── dev-factory/        ← Sequential Claude Code team kit: orchestrate.py, .ai/ contracts, roles, gateways (ADR-0005)
+├── agents/             ← .agent.md files (GitHub Copilot format)
+├── instructions/       ← .instructions.md files sourced from github/awesome-copilot
+├── hooks/              ← GitHub Copilot hooks (tool-guardian, secrets-scanner, ...)
+├── scripts/            ← fetch-awesome-copilot.sh
 └── examples/           ← Example copilot-instructions.md files by project type
 ```
+
+Skills and plugins are not stored here: they are installed in the target environment
+(`gh skills install`, `copilot plugin install`).
+
+## Dev factory (`dev-factory/`)
+
+Code work runs as a sequential team — Hermes orchestrates, Claude Code DEV → REVIEW → TEST run
+one at a time on the local model through dedicated gateways, a human validates and merges.
+See ADR-0005 and [dev-factory/README.md](dev-factory/README.md).
 
 ## Hermes Continuity (`hermes/`)
 
 Single source for the operational continuity contract used by Hermes sessions
-(see ADR-0021 in `HermesVPS2`): checkpoint discipline under context pressure,
+(origin: ADR-0021 in the `HermesVPS2` repo): checkpoint discipline under context pressure,
 mandatory tracking files. Propagated to every project by
-`sync-governance.sh` (the `sync_hermes` function), regardless of type (`base|infra|ai|app`)
+`sync-governance.sh` (the `sync_hermes` function), regardless of type (`base|infra|ai|app|m365`)
 — context continuity is not specific to a project type.
 
 - `hermes/.hermes.md` — the contract itself, to be copied as-is to `<project>/.hermes.md`
@@ -52,7 +61,7 @@ mandatory tracking files. Propagated to every project by
 
 ```bash
 # From vibecoding-bootstrap
-./scripts/sync-governance.sh --type <base|infra|ai|app> --dest /path/to/project
+./scripts/sync-governance.sh --type <base|infra|ai|app|m365> --dest /path/to/project
 ```
 
 ### Update awesome-copilot elements

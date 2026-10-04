@@ -1,11 +1,18 @@
 # ADR-0001 — Adopter la chaîne PRD → ADR → Plan → Runbook, avec deux modes d'exécution
 
 **Date:** 2026-09-14
-**Statut:** Proposé — Superseded by ADR-0002 (language policy)
+**Statut:** Accepted — language clause superseded by ADR-0002; Mode B (`hermes-orchestrator-openhands`) superseded by ADR-0005
 **Décideurs:** Capitaine (Jérémie Coste), Arcane (Hermes)
 **Contexte technique:** gouvernance itshaker (templates, agents Copilot, méthodologie) — repo `vibecoding-copilot-governance`.
 **authored_by:** frontier-model (cet ADR est rédigé par Claude Sonnet 5 dans ce plan)
 **execution_mode:** hermes-solo (l'implémentation de ce plan lui-même se fait en Mode A — pas de délégation OpenHands nécessaire pour du travail documentaire/gouvernance)
+
+> **Registry note (2026-09-29):** The former status line ("Proposé — Superseded by ADR-0002") read as if
+> the whole decision were void, whereas ADR-0002 supersedes only its language clause and the
+> PRD → ADR → Plan → Runbook chain it created is in force. "Accepted" is inferred from ADR-0002,
+> ADR-0003 and ADR-0004, which all treat this ADR as accepted and implemented. The bilingual
+> templates cited in §Références (`*.fr.md` / `*.en.md`) were merged into `templates/PRD-template.md`
+> and `templates/ADR-template.md` by ADR-0002 (IMP-002). Body kept in French as authored (ADR-0002, NEG-001).
 
 ## Contexte
 

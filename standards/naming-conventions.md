@@ -18,6 +18,7 @@
 | `chore/<slug>` | `chore/update-deps` | Maintenance |
 | `docs/<slug>` | `docs/update-api-spec` | Documentation |
 | `hotfix/<slug>` | `hotfix/critical-security` | Urgent fixes |
+| `agent/TASK-NNNN` | `agent/TASK-0042` | Sequential Claude Code team — one task, one branch, one worktree (ADR-0005). Created by `scripts/orchestrate.py` only |
 
 ## Files and directories
 

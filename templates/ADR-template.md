@@ -4,7 +4,7 @@
 # ADR-XXXX — Decision title
 
 **Date:** YYYY-MM-DD
-**Status:** Proposed | In progress | Accepted | Rejected | Deprecated | Superseded by ADR-YYYY
+**Status:** Proposed | In progress | Accepted | Rejected | Withdrawn | Deprecated | Superseded by ADR-YYYY
 **Decision makers:** <!-- Names or roles -->
 **Technical context:** <!-- Stack, version, etc. -->
 **authored_by:** frontier-model (recommended) | local-model
@@ -12,13 +12,14 @@
      choice for audit purposes and to flag that a frontier-model review is recommended before
      "Accepted" if the decision is irreversible or high-stakes (public infra, data, significant
      recurring cost). -->
-**execution_mode:** hermes-solo | hermes-orchestrator-openhands
-<!-- hermes-solo: a single Hermes agent sequentially takes on every role (architect/dev/
-     tester/security/ops) within its own context — via subagent-driven-development.
-     hermes-orchestrator-openhands: Hermes only plays the Orchestrator role and delegates each
-     role to an isolated OpenHands app-conversation (separate sandbox + repo/branch) — pattern
-     accepted by ADR-0020 (itshaker-dgx-spark-V2), driven via oh_pilot.py / skill openhands-pilot.
-     Selection criteria: see docs/methodology/PRD-ADR-PLAN-RUNBOOK-WORKFLOW.md §Modes.
+**execution_mode:** hermes-sequential-team | hermes-solo
+<!-- hermes-sequential-team (default for any decision that changes code, ADR-0005): Hermes
+     orchestrates, Claude Code DEV → REVIEW → TEST run one at a time via scripts/orchestrate.py,
+     a human validates and merges.
+     hermes-solo: Hermes alone, for documentation, governance and Runbook-driven operations
+     (no application code).
+     hermes-orchestrator-openhands is deprecated (ADR-0005) — do not use it in new ADRs.
+     Selection criteria: see docs/methodology/PRD-ADR-PLAN-RUNBOOK-WORKFLOW.md §Execution modes.
      Per ADR-0004, the model tier executing the Plan/Runbook downstream of either mode defaults to
      Hermes-on-local; frontier-model execution is the exception, on the criteria documented in
      agents/runbook-generator.agent.md — this field is about role isolation, not model tier. -->
@@ -66,12 +67,11 @@
      - Rollback condition: the exact trigger and action to undo this decision if it goes wrong.
      Use coded bullets (IMP-001, IMP-002, ...) for each point — see agents/adr-generator.agent.md.
 
-     Density rule when execution_mode targets Hermes-on-local (hermes-solo or
-     hermes-orchestrator-openhands with a local-model executor): the local model's context window
-     is bounded (65,536 tokens for unsloth/Qwen3.8-27B-NVFP4 — see hermes/.hermes.md). In that
-     case, Context/Decision/Implementation must use coded bullets rather than free prose, and the
-     whole ADR should stay within an indicative ~2,000 words / ~400 lines so it remains
-     self-sufficient without forcing a reload of the full linked PRD into working context. -->
+     Density rule (local-model execution, the default per ADR-0004): REVIEW only receives the
+     Decision and Implementation sections of each linked ADR, inside a 32k-token budget shared
+     with the diff (ADR-0005); DEV and Hermes work within 98k. Context/Decision/Implementation
+     must therefore use coded bullets rather than free prose, and Decision + Implementation
+     together should stay under ~1,000 words so they fit next to a typical diff. -->
 
 ## References
 

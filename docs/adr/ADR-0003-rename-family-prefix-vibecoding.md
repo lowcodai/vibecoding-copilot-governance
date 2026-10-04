@@ -3,16 +3,25 @@
 **Date:** 2026-09-15
 **Status:** Accepted
 **Decision-makers:** Capitaine (Jérémie Coste) — full execution approved (autopilot)
-**Technical context:** lowcodai governance ecosystem (templates, Copilot agents, methodology) — repo `vibecoding-copilot-governance` (until the rename wave completes, then `vibecoding-copilot-governance`).
+**Technical context:** lowcodai governance ecosystem (templates, Copilot agents, methodology) — repo `itshaker-copilot-governance` (until the rename wave completes, then `vibecoding-copilot-governance`).
 **authored_by:** frontier-model (Qwen3.8-27B-NVFP4)
 **execution_mode:** hermes-solo
 
+> **Registry note (2026-09-29):** (1) The rename wave's own content replacement (commit `9535d88`)
+> rewrote the *old* names in this ADR, making it read "rename `vibecoding-*` to `vibecoding-*`".
+> The technical context, the Context paragraph, the allowlist entries and the env var names are
+> restored verbatim from the authored version (`b3444d9`); repo paths used as links keep the new
+> names. (2) `authored_by` is contradictory as authored: Qwen3.8-27B-NVFP4 is the local model —
+> read it as `local-model`. (3) Since 2026-09-29 `VIBECODING_GOVERNANCE_DIR` *is* read by
+> `vibecoding-bootstrap/scripts/sync-governance.sh`; the "not read by any script" statement
+> below describes 2026-09-15.
+
 ## Context
 
-The template family — four template repos (`vibecoding-template-base`,
-`vibecoding-template-infra`, `vibecoding-template-ai`, `vibecoding-template-app`),
-the instantiation engine (`vibecoding-bootstrap`) and this governance repo
-(`vibecoding-copilot-governance`) — predate the `vibecoding` naming the user now
+The template family — four template repos (`itshaker-template-base`,
+`itshaker-template-infra`, `itshaker-template-ai`, `itshaker-template-app`),
+the instantiation engine (`itshaker-bootstrap`) and this governance repo
+(`itshaker-copilot-governance`) — predate the `vibecoding` naming the user now
 prefers for the template/governance product line. The user requested
 (2026-09-15): replace the `itshaker` prefix with `vibecoding` across the six
 repos.
@@ -62,8 +71,8 @@ Consequential renames outside the six repos, in the same wave:
 - VPS2 skill `itshaker-governance-sync` references and directory;
 - DGX Spark host allowlist
   `docker/hermes-spark-builder/capabilities/github-repository-allowlist.yml`
-  (entries `lowcodai/vibecoding-bootstrap`, `lowcodai/vibecoding-copilot-governance`,
-  `lowcodai/vibecoding-template-ai` → `lowcodai/vibecoding-*`).
+  (entries `lowcodai/itshaker-bootstrap`, `lowcodai/itshaker-copilot-governance`,
+  `lowcodai/itshaker-template-ai` → `lowcodai/vibecoding-*`).
 
 ## Consequences
 
@@ -75,7 +84,7 @@ Consequential renames outside the six repos, in the same wave:
 - `standards/naming-conventions.md` — the only living spec encoding the old
   pattern — is updated in the same commit wave; skill slugs (external,
   installed on-site) are **not** renamed.
-- Documented env vars `VIBECODING_GOVERNANCE_DIR` / `VIBECODING_GITHUB_ORG`
+- Documented env vars `ITSHAKER_GOVERNANCE_DIR` / `ITSHAKER_GITHUB_ORG`
   (`vibecoding-bootstrap/docs/usage.md`) are renamed to `VIBECODING_*`; they are
   not read by any script (verified 2026-09-15), so this is a documentation-only
   change.

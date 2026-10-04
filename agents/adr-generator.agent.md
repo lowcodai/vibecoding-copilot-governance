@@ -56,7 +56,7 @@ Create an ADR as a markdown file following the standardized format below with th
 
 ### 4. Density/self-sufficiency check (mandatory when `execution_mode` targets Hermes-on-local)
 
-Before finalizing, if `execution_mode` is `hermes-solo` or `hermes-orchestrator-openhands` with a
+Before finalizing, if `execution_mode` is `hermes-sequential-team` or `hermes-solo` with a
 local-model executor (the default per ADR-0004 — see
 `docs/adr/ADR-0004-hermes-local-default-execution.md`):
 
@@ -81,7 +81,7 @@ status: "Proposed"
 date: "YYYY-MM-DD"
 authors: "[Stakeholder Names/Roles]"
 authored_by: "frontier-model | local-model"  # honest, never empty — see docs/methodology/PRD-ADR-PLAN-RUNBOOK-WORKFLOW.md
-execution_mode: "hermes-solo | hermes-orchestrator-openhands"  # locked before Implementation Notes
+execution_mode: "hermes-sequential-team | hermes-solo"  # ADR-0005; locked before Implementation Notes
 tags: ["architecture", "decision"]
 supersedes: ""
 superseded_by: ""
@@ -179,13 +179,15 @@ For each alternative:
 
 **Density rule when `execution_mode` targets Hermes-on-local execution** (per ADR-0004 — the
 default unless a frontier-model exception criterion applies, see
-`agents/runbook-generator.agent.md`): the local model's context window is bounded (65,536 tokens
-for `unsloth/Qwen3.8-27B-NVFP4` — see `hermes/.hermes.md`). In that case, before finalizing:
+`agents/runbook-generator.agent.md`): the Claude Code REVIEW role receives only the `## Decision`
+and `## Implementation...` sections of each linked ADR, inside a 32k-token budget shared with the
+diff (ADR-0005). In that case, before finalizing:
 
 - Verify Context/Decision/Implementation Notes use coded bullets rather than free prose.
-- Verify the whole ADR stays within an indicative **~2,000 words / ~400 lines**, so it remains
-  self-sufficient without forcing a reload of the full linked PRD into working context. If the
-  decision genuinely needs more, split it into multiple ADRs rather than exceeding the limit.
+- Keep the headings `## Decision` and `## Implementation Notes` exactly: `scripts/orchestrate.py`
+  extracts them by heading.
+- Verify Decision + Implementation Notes together stay under **~1,000 words**. If the decision
+  genuinely needs more, split it into multiple ADRs rather than exceeding the limit.
 
 #### References
 

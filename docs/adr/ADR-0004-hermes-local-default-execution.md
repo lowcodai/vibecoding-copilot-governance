@@ -1,11 +1,18 @@
 # ADR-0004 — Hermes-on-local-model executes by default; frontier model is the exception
 
 **Date:** 2026-09-16
-**Status:** Accepted
+**Status:** Accepted — amended by ADR-0005 (who executes code on the local model)
 **Decision-makers:** Capitaine (Jérémie Coste), Arcane (Hermes)
 **Technical context:** lowcodai governance ecosystem (templates, Copilot agents, methodology) — repo `vibecoding-copilot-governance` (currently `itshaker-copilot-governance` on disk, pending ADR-0003 rename completion).
 **authored_by:** frontier-model (this ADR is authored by Claude Sonnet 5, at the Capitaine's request, 2026-09-16)
 **execution_mode:** hermes-solo (this ADR's own documentation work, and the three implementation deliverables it authorizes, are single-repo, documentation-only, and reversible — no role isolation is required)
+
+> **Registry note (2026-09-29):** The ADR-0003 rename has since completed (the repo is
+> `vibecoding-copilot-governance` on disk too). The concurrent draft cited in REF-006 moved to
+> `docs/adr/withdrawn/` so that `docs/adr/` holds a single ADR per number. The 65,536-token
+> figure cited below was replaced by the 98k/2k gateway limits (ADR-0005). IMP-005
+> (propagation) was delivered in `vibecoding-bootstrap` commit `2dccc39`. ADR-0005
+> amends who executes code on the local model; the model-tier decision below is unchanged.
 
 ## Context
 
@@ -134,7 +141,7 @@ it selects role-isolation strategy, not model tier, and is unaffected by this AD
 - **REF-004**: `hermes/.hermes.md` (model context-window table — source of the 65,536-token figure
   for `unsloth/Qwen3.8-27B-NVFP4`).
 - **REF-005**: `templates/ADR-template.md`, `agents/adr-generator.agent.md` (hardened by IMP-003).
-- **REF-006**: `docs/adr/ADR-0004-hermes-solo-local-default-execution.md` — an independently
+- **REF-006**: `docs/adr/withdrawn/ADR-0004-hermes-solo-local-default-execution.md` — an independently
   drafted ADR reaching the same decision, created in a concurrent session on 2026-09-16 before
   either document was pushed to `origin/main`. Kept as-authored (ADR immutability principle) and
   marked "Superseded by" this document; not implemented.

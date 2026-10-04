@@ -8,8 +8,10 @@ description: Expert agent for creating sequenced, verifiable Runbooks from an ac
 You create Runbooks: the operational, step-by-step layer that turns an accepted ADR's decision
 into an executable sequence. Per ADR-0004
 (`docs/adr/ADR-0004-hermes-local-default-execution.md`), Runbooks you generate are designed to be
-executed by **Hermes running on the local model** (`unsloth/Qwen3.8-27B-NVFP4`, DGX Spark, vLLM —
-65,536-token context window, see `hermes/.hermes.md`) in `hermes-solo` mode **by default**.
+executed by **Hermes running on the local model** (`Qwen-3.8-27B-NVFP4`, DGX Spark, vLLM —
+`hermes-orchestrator` gateway: 98k context, 2k output, see `hermes/.hermes.md`) in `hermes-solo`
+mode **by default**. Runbooks cover operations, not application code: code changes go through
+task contracts and the sequential Claude Code team (ADR-0005).
 Frontier-model execution is the exception, not the default — see §Escalation Criteria below.
 
 ## Output Language
@@ -55,7 +57,8 @@ Using `templates/RUNBOOK-template.md`, produce:
 
 ### 4. Density and self-sufficiency check (mandatory before finalizing)
 
-Because the default executor is a 65,536-token-context local model (`hermes/.hermes.md`), every
+Because the default executor is a local model behind a 98k-context / 2k-output gateway
+(`hermes/.hermes.md`), every
 generated Runbook must satisfy, before being saved:
 
 - **No elliptical steps.** Reject any step that reads as a summary of an action rather than the

@@ -4,7 +4,7 @@
 > language choice to check, and the decoupling rule this banner used to describe (superseded by
 > ADR-0002) no longer applies.
 
-# Methodology — PRD → ADR → Plan → Runbook → Automated Execution
+# Methodology — PRD → ADR → Plan → Runbook / Task → Execution
 
 ## Why this chain
 
@@ -30,7 +30,8 @@ questions along the way — the arbitration has already happened, upstream, in t
    never improvised during it. A Runbook must never introduce a decision absent from its linked
    ADR — if it encounters one, it stops and reports the gap instead of arbitrating it locally (see
    ADR-0004).
-5. **Automated execution** — see §Modes and §Default execution tier.
+5. **Task contracts** (`.ai/tasks/TASK-NNNN.md`) for code, executed by the sequential Claude Code
+   team — see §Execution modes and ADR-0005.
 
 ## Model tier recommendation (non-blocking)
 
@@ -58,66 +59,56 @@ documented in `agents/runbook-generator.agent.md` (§Escalation Criteria) — no
 reflex. That agent file is the single source of truth for the escalation criteria; this document
 does not duplicate them.
 
-This is orthogonal to `execution_mode` (`hermes-solo` / `hermes-orchestrator-openhands`), which
-selects role-isolation strategy, not model tier — a Mode A or Mode B ADR can equally target a
-local-model or a frontier-model executor downstream.
+The executor for **code** on the local model is the sequential Claude Code team (ADR-0005), not
+Hermes itself; Hermes executes Runbooks (operations) and documentation work directly.
 
 ## Execution modes
 
-### Mode A — Hermes Solo
+### `hermes-sequential-team` — default for any change to code (ADR-0005)
 
-A single Hermes agent sequentially takes on every role (architect, dev, tester, security, ops) in
-its own context, following the Plan via the `subagent-driven-development` skill (a fresh
-sub-agent per task, spec review then quality review). No sandbox isolation per role — only
-logical isolation (sequential steps, interleaved reviews).
+Hermes is the Engineering Manager: it frames the work, writes one task contract per unit of work
+(`.ai/tasks/TASK-NNNN.md`), runs `scripts/orchestrate.py`, arbitrates the outcome and prepares the
+human validation. It does not code and never merges. The orchestrator runs one Claude Code role
+at a time on one worktree per task:
 
-**Choose Mode A when:**
-- The work is single-repo, single-domain, reversible.
-- No need for strong isolation between roles (e.g. no strict dev/security separation required).
-- Limited volume of work (a few hours, not several agent-days in parallel).
-- Cost/simplicity take priority over isolation.
+```
+PLANNED → DEV → REVIEW ─CHANGES_REQUESTED→ DEV
+                  │
+                  └→ TEST ─FAIL→ DEV
+                       │
+                       └→ READY_FOR_APPROVAL → human validation → merge (human)
+```
 
-### Mode B — Hermes Orchestrator + OpenHands
+| Role | Gateway | Context / output / temp. | Receives |
+|---|---|---|---|
+| Hermes | `hermes-orchestrator` | 98k / 2k / 0.2 | AGENTS.md, ADR, PRD, orchestration.yaml, TASK |
+| DEV | `cc-dev` | 98k / 4k / 0.2 | TASK + feedback; reads AGENTS.md/ADR/PRD itself |
+| REVIEW | `cc-review` | 32k / 2k / 0.1 | acceptance criteria, ADR Decision/Implementation, git diff |
+| TEST | `cc-test` | 32k / 2k / 0.1 | acceptance criteria, validation exit codes + log tails |
 
-Hermes only plays the **Orchestrator** role: it does not code itself, it delegates each role
-(architect, dev, tester, security, ops) to a separate **OpenHands app-conversation** — an
-isolated sandbox, its own repo and branch, model `openai/dgx-spark-current` (vLLM DGX Spark).
-Cross-role collaboration goes through governable artifacts (git/diff, branches, reports) relayed
-by the Orchestrator — never through a direct agent-to-agent conversation. This pattern is
-**already accepted** by `ADR-0020` (`itshaker-dgx-spark-V2`, 2026-09-12) for
-`hermes-spark-builder`; this document generalizes its selection criteria to any project governed
-by `vibecoding-copilot-governance`.
+Kit and details: `dev-factory/README.md`. Hermes procedure: skill `sequential-coding-team`.
 
-**Choose Mode B when:**
-- Strict isolation between roles is required (e.g. the security role must be able to block
-  without the dev role being able to overwrite its verdict in the same context).
-- Real parallelism is desired (several roles/tasks in progress simultaneously, separate
-  sandboxes).
-- High stakes (public infrastructure, production deployment, sensitive data) where a separate
-  per-conversation audit trail has value.
-- The delegation mechanism already exists for the target (`oh_pilot.py` / `openhands-pilot`
-  skill, available today on `hermes-spark-builder`/DGX Spark).
+### `hermes-solo` — documentation, governance, operations
 
-**Mode B prerequisites (inherited from ADR-0020, to verify before choosing this mode):**
-- OpenHands operational and qualified on the target (see the `openhands-spark-ops` skill —
-  known limitations: no GitHub token configured for `--repo` conversations at the time of
-  writing, task id ≠ statable conversation id).
-- The target repo must be reachable via `--repo`/`--branch` from OpenHands, or the mode
-  effectively falls back to Mode A for the roles that need it.
+A single Hermes agent executes the work directly: PRD/ADR drafting, governance edits, and
+Runbook-driven operations (`docs/runbooks/`). No application code in this mode.
 
-## What this document does not decide
+### `hermes-orchestrator-openhands` — deprecated
 
-- It does not redesign `ADR-0020` or its scope (`hermes-spark-builder` remains the sole
-  orchestrator on that instance).
-- It only makes Mode B available where OpenHands piloting actually exists — a repo without
-  access to a qualified `oh_pilot.py`/OpenHands app must default to Mode A.
+Superseded by ADR-0005 (never qualified outside `hermes-spark-builder`; parallel sandboxes do not
+fit a single DGX Spark). Existing ADRs that name it keep their text; new ADRs must not use it.
+
+## Where Plan, Runbook and Task fit
+
+- **Plan** (`.hermes/plans/*.md`): Hermes' breakdown of an accepted ADR.
+- **Task** (`.ai/tasks/TASK-NNNN.md`): one code unit of the Plan, executed by the Claude Code team.
+- **Runbook** (`docs/runbooks/`): one operational unit of the Plan, executed by Hermes.
 
 ## References
 
 - `templates/PRD-template.md`, `templates/ADR-template.md`, `templates/RUNBOOK-template.md`
 - `agents/prd-generator.agent.md`, `agents/adr-generator.agent.md`,
   `agents/runbook-generator.agent.md`
-- Skills: `plan`, `writing-plans`, `subagent-driven-development`, `openhands-spark-ops`
-- ADR source of the Mode B pattern: `itshaker-dgx-spark-V2/docs/adr/ADR-0020-hermes-builder-openhands-orchestration.md`
-- ADR-0004 — `docs/adr/ADR-0004-hermes-local-default-execution.md` (default execution tier:
-  Hermes-on-local by default, frontier model on explicit escalation criteria only)
+- `dev-factory/` — orchestration kit (ADR-0005)
+- ADR-0004 — `docs/adr/ADR-0004-hermes-local-default-execution.md` (local model by default)
+- ADR-0005 — `docs/adr/ADR-0005-sequential-claude-code-team-orchestrated-by-hermes.md`

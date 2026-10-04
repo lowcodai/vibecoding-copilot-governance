@@ -12,9 +12,11 @@
      operation, stop here and create one first (agents/adr-generator.agent.md) — do not start
      a Runbook to work around a missing decision. -->
 **authored_by:** frontier-model | local-model
-**execution_mode:** hermes-solo | hermes-orchestrator-openhands
-<!-- Inherited verbatim from linked_adr's execution_mode field — a Runbook never chooses its own
-     execution_mode independently of the ADR that authorizes it. -->
+**execution_mode:** hermes-solo
+<!-- Runbooks are operational procedures executed by Hermes (hermes-solo). Code changes are not
+     Runbook material: they go through task contracts (.ai/tasks/TASK-NNNN.md) and the sequential
+     Claude Code team (ADR-0005). If linked_adr is hermes-sequential-team, write tasks, not a
+     Runbook. -->
 
 ## Preconditions
 
