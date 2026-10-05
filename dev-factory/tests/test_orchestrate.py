@@ -45,6 +45,15 @@ FAKE_AGENT = textwrap.dedent(
             res = {"status": "DONE", "summary": "forgot to commit"}
         elif action == "blocked":
             res = {"status": "BLOCKED", "reason": "ADR gap"}
+        elif action == "protected":
+            Path(".claude/hooks/secrets-allowlist.txt").write_text("* GENERIC_SECRET\n")
+            subprocess.run(["git", "add", "-A"], check=True)
+            subprocess.run(["git", "commit", "-qm", f"chore: widen allowlist {n}"], check=True)
+            res = {"status": "DONE", "summary": "done"}
+        elif action == "restore":
+            subprocess.run(["git", "checkout", "HEAD~1", "--", ".claude/hooks/secrets-allowlist.txt"], check=True)
+            subprocess.run(["git", "commit", "-qam", f"fix: restore protected file {n}"], check=True)
+            res = {"status": "DONE", "summary": "restored"}
         elif action == "leak":
             Path(f"cfg_{n}.py").write_text("K = '" + "AKIA" + "Q7W3E5R8T1Y4U6I9" + "'\n")
             subprocess.run(["git", "add", "-A"], check=True)
@@ -192,6 +201,21 @@ class OrchestrateTest(unittest.TestCase):
         self.assertEqual(st["state"], orchestrate.BLOCKED)
         self.assertIn("tests failed (cycle 1)", [h["reason"] for h in st["history"]])
         self.assertIn("AWS_ACCESS_KEY", (self.repo / ".ai/runs/TASK-0001/logs/secrets-scan.log").read_text())
+
+    def test_protected_paths_are_sent_back_to_dev(self):
+        os.environ["FAKE_DEV"] = "protected,restore"
+        self.assertEqual(self.run_task(), 0)
+        st = self.state()
+        reasons = [h["reason"] for h in st["history"]]
+        self.assertTrue(any(r.startswith("protected paths modified: .claude/hooks/secrets-allowlist.txt") for r in reasons), reasons)
+        order = (self.repo / ".ai/runs/TASK-0001/dev-work-order.md").read_text()
+        self.assertIn("git checkout", order)
+        self.assertEqual(st["state"], orchestrate.READY)
+
+    def test_protected_paths_unfixed_end_blocked(self):
+        os.environ["FAKE_DEV"] = "protected,nocommit"
+        self.assertEqual(self.run_task(), 2)
+        self.assertEqual(self.state()["state"], orchestrate.BLOCKED)
 
     def test_resume_continues_from_persisted_state(self):
         orch = orchestrate.Orchestrator(self.repo, "TASK-0001")

@@ -10,7 +10,7 @@ This repository is the **single source of truth** for:
 - Security and governance hooks
 - Recommended agents and skills
 - Policies (licenses, secrets, branching)
-- PRD, ADR, RUNBOOK, ISSUE_TEMPLATE, PR_TEMPLATE templates
+- PRD, ADR, PLAN, RUNBOOK, ISSUE_TEMPLATE, PR_TEMPLATE templates
 - The sequential Claude Code team kit (`dev-factory/`, ADR-0005)
 
 ## Structure
@@ -19,10 +19,10 @@ This repository is the **single source of truth** for:
 vibecoding-copilot-governance/
 ├── standards/          ← Conventions (branching, commits, PR, naming, documentation)
 ├── policies/           ← Policies: AI usage, secrets, licenses, branch protection
-├── templates/          ← PRD, ADR, RUNBOOK, ISSUE_TEMPLATE, PR_TEMPLATE
+├── templates/          ← PRD, ADR, PLAN, RUNBOOK, ISSUE_TEMPLATE, PR_TEMPLATE
 ├── docs/               ← ADRs, methodology, audits, awesome-copilot map
-├── hermes/             ← Hermes continuity contract (.hermes.md + docs/operations/ skeleton)
-├── dev-factory/        ← Sequential Claude Code team kit: orchestrate.py, .ai/ contracts, roles, gateways (ADR-0005)
+├── dev-factory/        ← Agent-neutral project kit: orchestrate.py, .ai/, .claude/, docs/ skeleton (ADR-0005/0007)
+├── adapters/hermes/    ← Hermes-specific rules and skill, installed in Hermes' environment (ADR-0007)
 ├── agents/             ← .agent.md files (GitHub Copilot format)
 ├── instructions/       ← .instructions.md files sourced from github/awesome-copilot
 ├── hooks/              ← GitHub Copilot hooks (tool-guardian, secrets-scanner, ...)
@@ -39,21 +39,14 @@ Code work runs as a sequential team — Hermes orchestrates, Claude Code DEV →
 one at a time on the local model through dedicated gateways, a human validates and merges.
 See ADR-0005 and [dev-factory/README.md](dev-factory/README.md).
 
-## Hermes Continuity (`hermes/`)
+## Project contract vs. agent adapters (ADR-0007)
 
-Single source for the operational continuity contract used by Hermes sessions
-(origin: ADR-0021 in the `HermesVPS2` repo): checkpoint discipline under context pressure,
-mandatory tracking files. Propagated to every project by
-`sync-governance.sh` (the `sync_hermes` function), regardless of type (`base|infra|ai|app|m365`)
-— context continuity is not specific to a project type.
-
-- `hermes/.hermes.md` — the contract itself, to be copied as-is to `<project>/.hermes.md`
-  (fill in the `{{PROJECT_NAME}}` / `{{CONTEXT_WINDOW_TOKENS}}` placeholders once, in the
-  target project, not in this source repo).
-- `hermes/docs-operations-templates/{CURRENT,HANDOFF,ACTIVITY}.md` — empty skeletons to copy
-  to `<project>/docs/operations/` **once only** (never overwrite a file already in use —
-  `copy_if_not_exists`, the same logic as `sync_instructions`).
-
+Projects are **agent-neutral**: they receive `AGENTS.md` (with its Continuity section),
+`CLAUDE.md`, `.ai/`, `.claude/`, `scripts/orchestrate.py` and the `docs/` skeleton
+(`prd/`, `adr/`, `plans/`, `runbooks/`, `operations/`) from `dev-factory/project-template/`.
+Rules specific to an orchestrator live in `adapters/<agent>/` and are installed in that agent's
+environment — today [`adapters/hermes/`](adapters/hermes/README.md). No `.hermes.md` is shipped to
+projects anymore.
 
 ## Usage
 

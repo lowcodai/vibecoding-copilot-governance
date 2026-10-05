@@ -6,20 +6,26 @@ description: Drive one coding task through the sequential Claude Code team (DEV 
 # Sequential coding team (ADR-0005)
 
 Budget reminder: you run on the `hermes-orchestrator` gateway (98k context, 2k output,
-temperature 0.2). Keep every write small and verify it (`.hermes.md` § Write verification).
+temperature 0.2). Keep every write small and verify it (`HERMES.md` § Write verification).
+Follow the project's `AGENTS.md`, including its Continuity section.
 
 ## 1. Frame the work
 1. Read `AGENTS.md`, `.ai/orchestration.yaml`, and the PRD/ADRs relevant to the request.
 2. If the request needs an architecture decision no ADR makes: stop and propose an ADR
    (adr-generator) to the user first. Never push an undecided choice onto DEV.
 3. Split into tasks small enough for one DEV run (target: < 400 changed lines each).
+4. More than 3 tasks, more than one epic, dependencies, or several sessions ahead? Write a plan
+   first (`docs/plans/PLAN-NNNN-<slug>.md`, `templates/PLAN-template.md`, ADR-0006) in several
+   verified edits, have it reviewed in a PR, then run its tasks in dependency order. Otherwise go
+   straight to task contracts.
 
 ## 2. Write the task contract
 1. `python3 scripts/orchestrate.py new TASK-NNNN --title "<title>"` (next free number).
 2. Fill `.ai/tasks/TASK-NNNN.md` in at most two edits (front matter + sections), each under
    ~1,500 tokens; read the file back after each edit.
 3. Mandatory: Objective, Scope, Out of scope, Acceptance criteria (verifiable AC-n lines),
-   `adrs:` list, task-specific `validations:` if the project-wide ones do not cover the ACs.
+   `adrs:` list, task-specific `validations:` if the project-wide ones do not cover the ACs;
+   `plan:` and `epic:` when the task belongs to a plan.
 
 ## 3. Run
 1. Start `python3 scripts/orchestrate.py run TASK-NNNN` in the background (terminal tool);
@@ -29,6 +35,10 @@ temperature 0.2). Keep every write small and verify it (`.hermes.md` § Write ve
 2. Checkpoint `docs/operations/CURRENT.md` before starting and after each terminal state.
 
 ## 4. Arbitrate the terminal state
+
+At every terminal state, copy it into the plan's task table (when the task has a `plan:`), then
+pick the next task whose dependencies are all merged.
+
 - `READY_FOR_APPROVAL` → summarise for the human: branch, commits (`git log base..branch`),
   review summary, validation results. Wait for their decision. On approval run
   `orchestrate.py approve TASK-NNNN --by "<name>"`; the human merges.

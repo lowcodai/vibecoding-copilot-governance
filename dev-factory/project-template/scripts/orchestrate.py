@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """orchestrate.py — sequential DEV → REVIEW → TEST state machine (ADR-0005).
 
-Hermes (the Engineering-Manager agent) never codes: it writes a task contract
+The orchestrator agent (Hermes today, ADR-0007) never codes: it writes a task contract
 (.ai/tasks/TASK-XXXX.md) and calls this script. The script runs exactly one
 Claude Code role at a time against one git worktree per task, persists every
 transition under .ai/runs/TASK-XXXX/, and stops at READY_FOR_APPROVAL or
@@ -415,6 +415,16 @@ class Orchestrator:
             if ahead == "0":
                 st["feedback"] = {"source": "orchestrator", "issue": "no commit was created on the task branch"}
                 self.transition(st, DEV, "no commit produced")
+                return
+            protected = self.cfg.get("git", {}).get("protected_paths", [])
+            changed = git(["diff", "--name-only", f"{st['base_sha']}..HEAD"], wt).splitlines()
+            touched = [f for f in changed if any(f == p.rstrip("/") or f.startswith(p.rstrip("/") + "/") for p in protected)]
+            if touched:
+                # Deterministic guard: hooks, deny rules and the secrets allowlist are human-owned.
+                st["feedback"] = {"source": "orchestrator", "issue": "protected paths modified — restore them in a new commit with "
+                                  f"`git checkout {st['base_sha'][:12]} -- <file>` (delete files that did not exist)",
+                                  "files": touched[:30]}
+                self.transition(st, DEV, f"protected paths modified: {', '.join(touched[:5])}")
                 return
             st["feedback"] = None
             self.transition(st, REVIEW, f"DEV done ({ahead} commit(s) ahead of base)")

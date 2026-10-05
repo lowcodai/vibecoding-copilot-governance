@@ -12,16 +12,17 @@
      choice for audit purposes and to flag that a frontier-model review is recommended before
      "Accepted" if the decision is irreversible or high-stakes (public infra, data, significant
      recurring cost). -->
-**execution_mode:** hermes-sequential-team | hermes-solo
-<!-- hermes-sequential-team (default for any decision that changes code, ADR-0005): Hermes
-     orchestrates, Claude Code DEV → REVIEW → TEST run one at a time via scripts/orchestrate.py,
+**execution_mode:** orchestrated-team | single-agent
+<!-- orchestrated-team (default for any decision that changes code, ADR-0005): the orchestrator
+     agent plans, Claude Code DEV → REVIEW → TEST run one at a time via scripts/orchestrate.py,
      a human validates and merges.
-     hermes-solo: Hermes alone, for documentation, governance and Runbook-driven operations
-     (no application code).
-     hermes-orchestrator-openhands is deprecated (ADR-0005) — do not use it in new ADRs.
+     single-agent: the orchestrator agent alone, for documentation, governance and Runbook-driven
+     operations (no application code).
+     Older ADRs use hermes-sequential-team / hermes-solo (same meaning, ADR-0007);
+     hermes-orchestrator-openhands is deprecated (ADR-0005).
      Selection criteria: see docs/methodology/PRD-ADR-PLAN-RUNBOOK-WORKFLOW.md §Execution modes.
      Per ADR-0004, the model tier executing the Plan/Runbook downstream of either mode defaults to
-     Hermes-on-local; frontier-model execution is the exception, on the criteria documented in
+     the local model; frontier-model execution is the exception, on the criteria documented in
      agents/runbook-generator.agent.md — this field is about role isolation, not model tier. -->
 
 ## Context

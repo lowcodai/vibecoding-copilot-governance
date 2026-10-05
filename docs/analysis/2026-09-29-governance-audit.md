@@ -102,9 +102,11 @@ Key design decisions, driven by the model/gateway limits:
 1. ~~Accept or amend ADR-0005.~~ Accepted 2026-10-04. Next: run one real task and calibrate `overhead_tokens`.
 2. Decide the fate of the Copilot layer (A5, A7–A9, C4): either a `compat/copilot/` folder that
    is no longer synced by default, or removal. Until then, nothing in it is loaded by Claude Code.
-3. ~~Rewrite the generated `AGENTS.md` as the rulebook (A6).~~ Done; the `AGENTS.md` shipped in
-   the `vibecoding-template-*` repos (copied instead when a template clone sits next to the
-   bootstrap) must be aligned the same way.
+3. ~~Rewrite the generated `AGENTS.md` as the rulebook (A6).~~ Done. Correction (2026-10-04):
+   the `vibecoding-template-*` repos had no `AGENTS.md` at all, and `apply-template.sh` never
+   copies them (`apply_base_files()` is not called) — they are only consumed through GitHub's
+   "Use this template". Each now carries the generator's rendering for its type, guarded by
+   `vibecoding-bootstrap/tests/test-template-agents-md.sh`.
 4. ~~Port `tool-guardian` and `secrets-scanner` to Claude Code hooks.~~ Done (`dev-factory/project-template/.claude/hooks/`).
 5. ~~Clean the ADR ledger (B1–B3).~~ Done — see `docs/adr/README.md`.
 6. Make `awesome-copilot-bundles.yml` the only source for sync (B4, B8) or delete the YAML.
