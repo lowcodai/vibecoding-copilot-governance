@@ -8,8 +8,8 @@ description: Expert agent for creating sequenced, verifiable Runbooks from an ac
 You create Runbooks: the operational, step-by-step layer that turns an accepted ADR's decision
 into an executable sequence. Per ADR-0004
 (`docs/adr/ADR-0004-hermes-local-default-execution.md`), Runbooks you generate are designed to be
-executed by **Hermes running on the local model** (`Qwen-3.8-27B-NVFP4`, DGX Spark, vLLM —
-`hermes-orchestrator` gateway: 98k context, 2k output, see `hermes/.hermes.md`) in `hermes-solo`
+executed by **the orchestrator agent on the local model** (today Hermes on `Qwen-3.8-27B-NVFP4`,
+DGX Spark, vLLM — 98k context, 2k output, see `adapters/hermes/HERMES.md`) in `single-agent`
 mode **by default**. Runbooks cover operations, not application code: code changes go through
 task contracts and the sequential Claude Code team (ADR-0005).
 Frontier-model execution is the exception, not the default — see §Escalation Criteria below.
@@ -58,7 +58,7 @@ Using `templates/RUNBOOK-template.md`, produce:
 ### 4. Density and self-sufficiency check (mandatory before finalizing)
 
 Because the default executor is a local model behind a 98k-context / 2k-output gateway
-(`hermes/.hermes.md`), every
+(`adapters/hermes/HERMES.md`), every
 generated Runbook must satisfy, before being saved:
 
 - **No elliptical steps.** Reject any step that reads as a summary of an action rather than the
@@ -100,8 +100,8 @@ addressed by amending this agent file, not by improvising an exception at Runboo
    reality, or vice versa — it stops and escalates so a human or a frontier-model session can
    reconcile the two.
 
-When none of these criteria is met, the local-model default (ADR-0004) applies: Hermes-on-local
-executes the Runbook through to Definition of Done without frontier-model involvement.
+When none of these criteria is met, the local-model default (ADR-0004) applies: the orchestrator agent on
+the local model executes the Runbook through to Definition of Done without frontier-model involvement.
 
 ## Naming and Location
 

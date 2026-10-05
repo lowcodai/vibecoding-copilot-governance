@@ -1,4 +1,7 @@
-# dev-factory — sequential Claude Code team orchestrated by Hermes
+# dev-factory — sequential Claude Code team and agent-neutral project kit
+
+The kit in `project-template/` is agent-neutral (ADR-0007): any orchestrator can drive it.
+Hermes is today's orchestrator; its specific rules and skill are in `adapters/hermes/`.
 
 Implements ADR-0005. One model (`Qwen-3.8-27B-NVFP4`, vLLM on DGX Spark), one gateway per
 role, one Claude Code role active at a time.
@@ -28,7 +31,7 @@ User ─► Hermes (Engineering Manager, gateway hermes-orchestrator 98k/2k/0.2)
 | `project-template/CLAUDE.md` | `CLAUDE.md` | short project memory for interactive sessions |
 | `project-template/scripts/orchestrate.py` | `scripts/orchestrate.py` | the state machine |
 | `gateways.yaml` | — (infra reference) | gateway profiles + enforcement checklist |
-| `hermes-skill/sequential-coding-team/` | Hermes skills dir | Hermes procedure |
+| `project-template/docs/` | `docs/{prd,adr,plans,runbooks,operations}/` | agent-neutral docs skeleton (ADR-0007) |
 | `tests/` | — | `python3 -m unittest discover -s dev-factory/tests` |
 
 `vibecoding-bootstrap/scripts/sync-governance.sh` copies `project-template/` into projects

@@ -26,7 +26,7 @@ profiles:
     thinking: false           # 2k output: reasoning tokens would crowd out the answer
     notes: >
       Writes task contracts and summaries only. Large files are written in several
-      write_file calls, each verified by read-back (hermes/.hermes.md).
+      write_file calls, each verified by read-back (adapters/hermes/HERMES.md).
 
   cc-dev:
     client: claude-code

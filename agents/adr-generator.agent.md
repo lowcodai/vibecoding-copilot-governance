@@ -54,9 +54,9 @@ Create an ADR as a markdown file following the standardized format below with th
 - Structure content for both machine parsing and human reference
 - Save the file to `/docs/adr/` with proper naming convention
 
-### 4. Density/self-sufficiency check (mandatory when `execution_mode` targets Hermes-on-local)
+### 4. Density/self-sufficiency check (mandatory when `execution_mode` targets local-model execution)
 
-Before finalizing, if `execution_mode` is `hermes-sequential-team` or `hermes-solo` with a
+Before finalizing, if `execution_mode` is `orchestrated-team` or `single-agent` with a
 local-model executor (the default per ADR-0004 — see
 `docs/adr/ADR-0004-hermes-local-default-execution.md`):
 
@@ -81,7 +81,7 @@ status: "Proposed"
 date: "YYYY-MM-DD"
 authors: "[Stakeholder Names/Roles]"
 authored_by: "frontier-model | local-model"  # honest, never empty — see docs/methodology/PRD-ADR-PLAN-RUNBOOK-WORKFLOW.md
-execution_mode: "hermes-sequential-team | hermes-solo"  # ADR-0005; locked before Implementation Notes
+execution_mode: "orchestrated-team | single-agent"  # ADR-0007; locked before Implementation Notes
 tags: ["architecture", "decision"]
 supersedes: ""
 superseded_by: ""
@@ -177,7 +177,7 @@ For each alternative:
   If writing this section requires making a decision not yet settled by the ADR's own Decision
   section, that decision belongs in Decision/Consequences, not smuggled into Implementation Notes.
 
-**Density rule when `execution_mode` targets Hermes-on-local execution** (per ADR-0004 — the
+**Density rule when `execution_mode` targets local-model execution** (per ADR-0004 — the
 default unless a frontier-model exception criterion applies, see
 `agents/runbook-generator.agent.md`): the Claude Code REVIEW role receives only the `## Decision`
 and `## Implementation...` sections of each linked ADR, inside a 32k-token budget shared with the
@@ -249,7 +249,7 @@ Before finalizing the ADR, verify:
 - [ ] All coded items use proper format (e.g., POS-001, NEG-001)
 - [ ] Language is precise and avoids ambiguity
 - [ ] Document is formatted for readability
-- [ ] If `execution_mode` targets Hermes-on-local (the default per ADR-0004): coded bullets used
+- [ ] If `execution_mode` targets local-model execution (the default per ADR-0004): coded bullets used
   throughout, and the document stays within the ~2,000 words / ~400 lines density cap
 
 ---

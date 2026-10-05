@@ -1,7 +1,7 @@
 # ADR-0001 — Adopter la chaîne PRD → ADR → Plan → Runbook, avec deux modes d'exécution
 
 **Date:** 2026-09-14
-**Statut:** Accepted — language clause superseded by ADR-0002; Mode B (`hermes-orchestrator-openhands`) superseded by ADR-0005; Plan location amended by ADR-0006
+**Statut:** Accepted — language clause superseded by ADR-0002; Mode B (`hermes-orchestrator-openhands`) superseded by ADR-0005; Plan location amended by ADR-0006; execution mode names amended by ADR-0007
 **Décideurs:** Capitaine (Jérémie Coste), Arcane (Hermes)
 **Contexte technique:** gouvernance itshaker (templates, agents Copilot, méthodologie) — repo `vibecoding-copilot-governance`.
 **authored_by:** frontier-model (cet ADR est rédigé par Claude Sonnet 5 dans ce plan)

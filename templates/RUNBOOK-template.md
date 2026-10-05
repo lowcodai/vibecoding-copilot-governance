@@ -12,11 +12,11 @@
      operation, stop here and create one first (agents/adr-generator.agent.md) — do not start
      a Runbook to work around a missing decision. -->
 **authored_by:** frontier-model | local-model
-**execution_mode:** hermes-solo
-<!-- Runbooks are operational procedures executed by Hermes (hermes-solo). Code changes are not
-     Runbook material: they go through task contracts (.ai/tasks/TASK-NNNN.md) and the sequential
-     Claude Code team (ADR-0005). If linked_adr is hermes-sequential-team, write tasks, not a
-     Runbook. -->
+**execution_mode:** single-agent
+<!-- Runbooks are operational procedures executed by the orchestrator agent (single-agent mode).
+     Code changes are not Runbook material: they go through task contracts (.ai/tasks/TASK-NNNN.md)
+     and the sequential Claude Code team (ADR-0005). If linked_adr is orchestrated-team, write
+     tasks, not a Runbook. -->
 
 ## Preconditions
 
@@ -62,13 +62,13 @@
      exact gap in `docs/operations/CURRENT.md`, then escalate per the criteria documented in
      `agents/runbook-generator.agent.md`."
 
-     This is the guard-rail that lets a bounded-context local model (see hermes/.hermes.md)
+     This is the guard-rail that lets a bounded-context local model (see AGENTS.md § Continuity)
      execute this Runbook unattended without re-arbitrating architecture. A Runbook is not the
      place to fill an ADR's gaps — it is the place that proves the gap exists. -->
 
 ## Definition of Done
 
-<!-- Mirrors the continuity contract in hermes/.hermes.md — a step is not done until:
+<!-- Mirrors AGENTS.md § Continuity — a step is not done until:
      1. Its verification command has actually been run (real output, not assumed).
      2. `docs/operations/CURRENT.md` reflects the new state.
      3. `CHANGELOG.md` is updated if the change is user-visible, architectural, or operational.

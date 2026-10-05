@@ -9,8 +9,8 @@ carries a mandatory `linked_adr` (never empty): a Runbook must never introduce a
 from its linked ADR — if it encounters one, it stops and reports the gap instead of arbitrating it
 locally (see ADR-0004).
 
-Per ADR-0004, Runbooks are designed by default for execution by Hermes running on the local model
-(`hermes-solo`); escalation to a frontier model follows the closed criteria list documented in
+Per ADR-0004 and ADR-0007, Runbooks are designed by default for execution by the orchestrator
+agent on the local model (`single-agent` mode); escalation to a frontier model follows the closed criteria list documented in
 `agents/runbook-generator.agent.md`.
 
 Full methodology: see `docs/methodology/PRD-ADR-PLAN-RUNBOOK-WORKFLOW.md` in

@@ -1,7 +1,7 @@
 # ADR-0004 — Hermes-on-local-model executes by default; frontier model is the exception
 
 **Date:** 2026-09-16
-**Status:** Accepted — amended by ADR-0005 (who executes code on the local model)
+**Status:** Accepted — amended by ADR-0005 (who executes code on the local model) and ADR-0007 (Hermes rules move to `adapters/hermes/`)
 **Decision-makers:** Capitaine (Jérémie Coste), Arcane (Hermes)
 **Technical context:** lowcodai governance ecosystem (templates, Copilot agents, methodology) — repo `vibecoding-copilot-governance` (currently `itshaker-copilot-governance` on disk, pending ADR-0003 rename completion).
 **authored_by:** frontier-model (this ADR is authored by Claude Sonnet 5, at the Capitaine's request, 2026-09-16)
