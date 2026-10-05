@@ -21,11 +21,12 @@ In `single-agent` mode it executes Runbooks and documentation work directly.
 
 | Gateway / model | Context | Max output | 55% | 65% | 75% | 82% | 90% |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| `hermes-orchestrator` — Qwen-3.8-27B-NVFP4 (dgx-spark, **default**) | 98,000 | 2,000 | ~53,900 | ~63,700 | ~73,500 | ~80,360 | ~88,200 |
+| `hermes-orchestrator` — Qwen-3.8-27B-NVFP4 (dgx-spark, **default**) | 98,304 | 2,000 | ~54,067 | ~63,898 | ~73,728 | ~80,609 | ~88,474 |
 | `anthropic/claude-sonnet-5` (escalation only, ADR-0004) | 1,000,000 | — | ~550,000 | ~650,000 | ~750,000 | ~820,000 | ~900,000 |
 | `gpt-5.6-sol` (escalation only, ADR-0004) | 1,050,000 (922,000 max input) | — | ~577,500 | ~682,500 | ~787,500 | ~861,000 | ~945,000 |
 
-Keep the first row identical to `dev-factory/gateways.yaml`. Any other model: verify its real
+Keep the first row identical to Arcane's `model.context_length` (98,304 per HermesVPS2 CHANGELOG
+2026-09-28) and to `dev-factory/gateways.yaml`. Any other model: verify its real
 context window before trusting a number; never reuse a figure measured with another tokenizer.
 
 **2,000-token output cap:** one response cannot carry a large file. Write plans, task contracts

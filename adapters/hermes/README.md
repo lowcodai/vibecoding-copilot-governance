@@ -9,7 +9,12 @@ Projects are agent-neutral: they carry `AGENTS.md`, `CLAUDE.md`, `.ai/`, `.claud
 | `HERMES.md` | Hermes' global context (persistent instructions loaded in every session) | Role, gateway limits in tokens, `write_file` verification workaround, out-of-repo anchor, escalation |
 | `skills/sequential-coding-team/` | Hermes' skills directory | Procedure: plan → task contracts → `orchestrate.py` → arbitration → human validation |
 
-Install or update after each change to this folder:
+**Arcane (VPS2):** run the *Hermes Install Skill* workflow of `lowcodai/HermesVPS2`
+(`.github/workflows/hermes-install-skill.yml`, self-hosted runner on VPS2). It copies
+`skills/<skill>` into `hermes-gateway:/opt/data/skills/<category>/<skill>`, backs up the previous
+version outside the skills directory and verifies the copy. `HERMES.md` is not installed by it.
+
+Other installations:
 
 ```bash
 # paths depend on the Hermes installation — adapt HERMES_HOME
