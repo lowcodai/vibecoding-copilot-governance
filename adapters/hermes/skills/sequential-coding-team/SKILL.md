@@ -6,7 +6,9 @@ description: Drive one coding task through the sequential Claude Code team (DEV 
 # Sequential coding team (ADR-0005)
 
 Budget reminder: you run on the `hermes-orchestrator` gateway (98k context, 2k output,
-temperature 0.2). Keep every write small and verify it (`HERMES.md` § Write verification).
+temperature 0.2). Keep every write small and verify it.
+**Read `references/hermes-operating-rules.md` first** (gateway thresholds in tokens, `write_file`
+verification, out-of-repo anchor, escalation).
 Follow the project's `AGENTS.md`, including its Continuity section.
 
 ## 1. Frame the work

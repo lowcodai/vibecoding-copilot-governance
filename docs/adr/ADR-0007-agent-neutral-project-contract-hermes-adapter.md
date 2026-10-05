@@ -8,6 +8,14 @@
 **execution_mode:** single-agent (documentation, governance and template change; no application code)
 **amends:** ADR-0001 (execution mode names), ADR-0004 and ADR-0005 (where Hermes-specific rules live)
 
+> **Registry note (2026-10-05):** (1) DEC-003 — `HERMES.md` moved into the skill as
+> `adapters/hermes/skills/sequential-coding-team/references/hermes-operating-rules.md`: Hermes'
+> always-loaded global file is `SOUL.md`, its identity, which must not be replaced; the rules are
+> read when the skill runs, and only the context-window figure is kept in a delimited `SOUL.md`
+> section. (2) NEU-001 resolved — Hermes natively loads `AGENTS.md` (current directory) when no
+> `.hermes.md`/`HERMES.md` is present, `.hermes.md` taking priority (HermesVPS2 ADR-0021), so no
+> pointer file is needed; obsolete `.hermes.md` files must be removed for `AGENTS.md` to be read.
+
 ## Context
 
 - **CTX-001**: Every project receives `.hermes.md` (88 lines). It mixes rules any long-running

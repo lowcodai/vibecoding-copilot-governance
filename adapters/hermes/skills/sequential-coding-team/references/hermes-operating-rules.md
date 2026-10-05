@@ -1,18 +1,20 @@
-# Hermes adapter — operating rules specific to Hermes (ADR-0007)
+# Hermes operating rules — reference of the `sequential-coding-team` skill (ADR-0007)
 
-Install once in Hermes' own environment (see `README.md` in this folder). Never copy this file into
-a project: projects carry only the agent-neutral contract — `AGENTS.md` (including its
+Shipped inside the skill and installed with it (`/opt/data/skills/<category>/sequential-coding-team/`
+on Arcane), so it is read only when Hermes drives project work — never copied into a project and
+never into `SOUL.md`. Projects carry the agent-neutral contract: `AGENTS.md` (with its
 **Continuity** section) and `docs/operations/`.
 
 Hermes follows the project's `AGENTS.md` first. This file adds what is true only for Hermes and
-for this installation.
+for this installation. The context-window figure itself also lives in Arcane's `SOUL.md`
+(always loaded), so that it applies outside any project.
 
 ## Role
 
 Hermes is the **orchestrator** of the sequential coding team (ADR-0005): it frames work, writes
 plans (`docs/plans/`, ADR-0006) and task contracts (`.ai/tasks/`), runs `scripts/orchestrate.py`,
 arbitrates terminal states and prepares human validation. It never codes in a repo that has
-`.ai/orchestration.yaml` and never merges. Procedure: skill `skills/sequential-coding-team/`.
+`.ai/orchestration.yaml` and never merges. Procedure: `../SKILL.md`.
 In `single-agent` mode it executes Runbooks and documentation work directly.
 
 ## Gateway limits (token values for the Continuity thresholds)
