@@ -7,11 +7,12 @@ consumer projects, see `hermes/docs-adr-templates/README.md`.
 
 | ADR | Title | Status | Date | Relations |
 |-----|-------|--------|------|-----------|
-| [0001](ADR-0001-prd-adr-plan-runbook-methodology.md) | PRD → ADR → Plan → Runbook chain, two execution modes *(French, as authored)* | Accepted | 2026-09-14 | language clause superseded by 0002; Mode B superseded by 0005 |
+| [0001](ADR-0001-prd-adr-plan-runbook-methodology.md) | PRD → ADR → Plan → Runbook chain, two execution modes *(French, as authored)* | Accepted | 2026-09-14 | language clause superseded by 0002; Mode B superseded by 0005; Plan location amended by 0006 |
 | [0002](ADR-0002-english-only-governance.md) | English as the sole governance language | Accepted | 2026-09-14 | supersedes 0001 (language clause) |
 | [0003](ADR-0003-rename-family-prefix-vibecoding.md) | Rename family prefix `itshaker` → `vibecoding` | Accepted | 2026-09-15 | — |
 | [0004](ADR-0004-hermes-local-default-execution.md) | Local model executes by default, frontier model by exception | Accepted | 2026-09-16 | extends 0001; amended by 0005 (who executes code) |
 | [0005](ADR-0005-sequential-claude-code-team-orchestrated-by-hermes.md) | Sequential Claude Code team (DEV/REVIEW/TEST) orchestrated by Hermes | Accepted | 2026-09-29 | supersedes 0001 Mode B; amends 0004 |
+| [0006](ADR-0006-plans-in-docs-plans.md) | Delivery plans in `docs/plans/`, mandatory beyond three tasks | Accepted | 2026-10-05 | amends 0001 (Plan location) |
 
 Withdrawn (never accepted, kept for traceability, never implement from them):
 
@@ -22,7 +23,8 @@ Withdrawn (never accepted, kept for traceability, never implement from them):
 **Decisions in force, in one line each:** the PRD → ADR → Plan → Runbook/Task chain (0001);
 everything in English (0002); `vibecoding-*` naming (0003); local model by default, frontier model
 only on the closed criteria of `agents/runbook-generator.agent.md` (0004); code work by a
-sequential Claude Code team orchestrated by Hermes, never by Hermes itself (0005).
+sequential Claude Code team orchestrated by Hermes, never by Hermes itself (0005); delivery plans
+in `docs/plans/`, mandatory beyond three tasks (0006).
 
 ## Rules
 

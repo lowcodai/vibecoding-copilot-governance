@@ -6,13 +6,16 @@
 |---------|-------------|-----|
 | `README.md` | Description, quick start, links | Root |
 | `CHANGELOG.md` | Version history (Keep a Changelog) | Root |
-| `BACKLOG.md` | Project epics and stories | Root |
+| `BACKLOG.md` | Index of epics, each linking to its plan (ADR-0006) | Root |
 | `ROADMAP.md` | Vision and goals by version | Root |
 | `AGENTS.md` | Project rulebook for agents and humans (see below) | Root |
 | `CONTRIBUTING.md` | Contribution guide | Root |
 | `SECURITY.md` | Security policy and reporting | Root |
 | `LICENSE` | Project license | Root |
+| `docs/prd/` | Product Requirement Documents | docs/ |
 | `docs/adr/` | Architecture Decision Records | docs/ |
+| `docs/plans/` | Delivery plans: epics, ordered tasks and runbooks (ADR-0006) | docs/ |
+| `docs/runbooks/` | Operational procedures executed by Hermes | docs/ |
 | `.github/copilot-instructions.md` | Copilot instructions for the project | .github/ |
 
 ## AGENTS.md — project rulebook
@@ -73,10 +76,11 @@ First ADRs to create:
 
 ## BACKLOG
 
-Recommended structure:
-- **Epics** — large units of business value
-- **Stories** — deliverable units of an Epic
+An index, not a breakdown (ADR-0006):
+- **Epics** — one line each: outcome, status, link to `docs/plans/PLAN-NNNN-*.md` when it exists
 - **Icebox** — unplanned ideas
+
+The breakdown of an epic into tasks lives in its plan; task details live in `.ai/tasks/`.
 
 ## ROADMAP
 

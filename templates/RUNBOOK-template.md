@@ -78,5 +78,5 @@
 ## References
 
 - Linked ADR: `docs/adr/ADR-XXXX-<slug>.md`
-- Source Plan: <!-- path to the .hermes/plans/*.md this Runbook was generated from, if any -->
+- Source Plan: <!-- docs/plans/PLAN-NNNN-<slug>.md this Runbook belongs to, if any (ADR-0006) -->
 ```

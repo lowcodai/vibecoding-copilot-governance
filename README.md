@@ -10,7 +10,7 @@ This repository is the **single source of truth** for:
 - Security and governance hooks
 - Recommended agents and skills
 - Policies (licenses, secrets, branching)
-- PRD, ADR, RUNBOOK, ISSUE_TEMPLATE, PR_TEMPLATE templates
+- PRD, ADR, PLAN, RUNBOOK, ISSUE_TEMPLATE, PR_TEMPLATE templates
 - The sequential Claude Code team kit (`dev-factory/`, ADR-0005)
 
 ## Structure
@@ -19,7 +19,7 @@ This repository is the **single source of truth** for:
 vibecoding-copilot-governance/
 ├── standards/          ← Conventions (branching, commits, PR, naming, documentation)
 ├── policies/           ← Policies: AI usage, secrets, licenses, branch protection
-├── templates/          ← PRD, ADR, RUNBOOK, ISSUE_TEMPLATE, PR_TEMPLATE
+├── templates/          ← PRD, ADR, PLAN, RUNBOOK, ISSUE_TEMPLATE, PR_TEMPLATE
 ├── docs/               ← ADRs, methodology, audits, awesome-copilot map
 ├── hermes/             ← Hermes continuity contract (.hermes.md + docs/operations/ skeleton)
 ├── dev-factory/        ← Sequential Claude Code team kit: orchestrate.py, .ai/ contracts, roles, gateways (ADR-0005)

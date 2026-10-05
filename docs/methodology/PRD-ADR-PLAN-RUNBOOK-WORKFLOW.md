@@ -22,9 +22,12 @@ questions along the way — the arbitration has already happened, upstream, in t
 2. **ADR** (`docs/adr/ADR-NNNN-<slug>.md`, `templates/ADR-template.md`) — which technical
    decision, rejected alternatives, consequences, **and** the `execution_mode` field that locks
    in the chosen execution mode (see below).
-3. **Plan** (`plan` / `writing-plans` skill, `.hermes/plans/*.md`) — breakdown into 2-5 minute
-   tasks, exact file paths, complete code, verification commands. Created in plan mode by an
-   agent (Hermes or GitHub Copilot).
+3. **Plan** (`docs/plans/PLAN-NNNN-<slug>.md`, `templates/PLAN-template.md`, ADR-0006) — ordered
+   epics and the units of work that deliver them (task contracts and Runbooks), with
+   dependencies and status. Mandatory beyond 3 tasks, more than one epic, dependencies between
+   tasks, or work spanning several Hermes sessions; below that, tasks reference the ADR directly.
+   Reviewed in a pull request before its first task runs. (`.hermes/plans/` holds pre-ADR-0006
+   history only.)
 4. **Runbook** (`docs/runbooks/RUNBOOK-NNNN-<slug>.md`, `templates/RUNBOOK-template.md`,
    `agents/runbook-generator.agent.md`) — sequenced operational detail, written before execution,
    never improvised during it. A Runbook must never introduce a decision absent from its linked
@@ -100,15 +103,28 @@ fit a single DGX Spark). Existing ADRs that name it keep their text; new ADRs mu
 
 ## Where Plan, Runbook and Task fit
 
-- **Plan** (`.hermes/plans/*.md`): Hermes' breakdown of an accepted ADR.
-- **Task** (`.ai/tasks/TASK-NNNN.md`): one code unit of the Plan, executed by the Claude Code team.
-- **Runbook** (`docs/runbooks/`): one operational unit of the Plan, executed by Hermes.
+```
+PRD (what, why) ─┐
+                 ├─► PLAN (epics, order, dependencies) ─► TASK-NNNN (code)  ─► run ─► PR
+ADR (how) ───────┘                                    └─► RUNBOOK (ops)   ─► Hermes
+```
+
+- **Plan** (`docs/plans/`): Hermes' breakdown of an accepted ADR and its PRD into epics (user
+  value) and ordered units of work. Optional for ≤ 3 independent tasks (ADR-0006).
+- **Task** (`.ai/tasks/TASK-NNNN.md`): one code unit — one DEV run, < ~400 changed lines,
+  verifiable acceptance criteria — executed by the Claude Code team. Front matter `plan:` and
+  `epic:` link it back to its plan.
+- **Runbook** (`docs/runbooks/`): one operational unit, executed by Hermes.
+- **Status:** detailed state in `.ai/runs/<task>/state.json`; Hermes copies terminal states into
+  the plan's task table; `BACKLOG.md` carries epic status only and links each epic to its plan.
 
 ## References
 
-- `templates/PRD-template.md`, `templates/ADR-template.md`, `templates/RUNBOOK-template.md`
+- `templates/PRD-template.md`, `templates/ADR-template.md`, `templates/PLAN-template.md`,
+  `templates/RUNBOOK-template.md`
 - `agents/prd-generator.agent.md`, `agents/adr-generator.agent.md`,
   `agents/runbook-generator.agent.md`
 - `dev-factory/` — orchestration kit (ADR-0005)
 - ADR-0004 — `docs/adr/ADR-0004-hermes-local-default-execution.md` (local model by default)
 - ADR-0005 — `docs/adr/ADR-0005-sequential-claude-code-team-orchestrated-by-hermes.md`
+- ADR-0006 — `docs/adr/ADR-0006-plans-in-docs-plans.md` (plans in `docs/plans/`, when mandatory)
