@@ -1,7 +1,7 @@
 # ADR-0005 — Sequential Claude Code team (DEV / REVIEW / TEST) orchestrated by Hermes
 
 **Date:** 2026-09-29
-**Status:** Accepted (2026-10-04, Capitaine) — amended by ADR-0007 (`hermes-sequential-team` → `orchestrated-team`; skill moved to `adapters/hermes/`)
+**Status:** Accepted (2026-10-04, Capitaine) — amended by ADR-0007 (`hermes-sequential-team` → `orchestrated-team`; skill moved to `adapters/hermes/`); amended by ADR-0008 (DEC-006 git model and IMP-006 kit sync: per-repo autonomy levels)
 **Decision-makers:** Capitaine (Jérémie Coste)
 **Technical context:** DGX Spark (Founders Edition), vLLM serving `Qwen-3.8-27B-NVFP4`, one gateway per agent role, Hermes as Engineering-Manager agent, Claude Code as the coding runtime.
 **authored_by:** frontier-model

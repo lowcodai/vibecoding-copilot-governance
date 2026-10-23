@@ -30,6 +30,14 @@ gh api repos/{owner}/{repo}/branches/main/protection \
   --field restrictions=null
 ```
 
+## Autonomy levels `branch` and `trusted` (ADR-0008)
+
+Agents may push their own branch (and, at `trusted`, merge their own green PR). Branch protection on
+`main` is the server-side backstop for the invariants (no push to `main`, no force push, no merge
+without checks): enable it on every repo above `supervised` where the plan allows it. Private
+repositories on a GitHub Free plan cannot use branch protection or rulesets; for them the
+client-side checks of `tool_guardian.py` are the only barrier — say so in the repo's README.
+
 ## Session Auto-Commit
 
 The `session-auto-commit` hook is **forbidden on `main`**.

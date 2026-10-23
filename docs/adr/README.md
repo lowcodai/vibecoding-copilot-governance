@@ -11,9 +11,10 @@ consumer projects, see `dev-factory/project-template/docs/adr/README.md`.
 | [0002](ADR-0002-english-only-governance.md) | English as the sole governance language | Accepted | 2026-09-14 | supersedes 0001 (language clause) |
 | [0003](ADR-0003-rename-family-prefix-vibecoding.md) | Rename family prefix `itshaker` → `vibecoding` | Accepted | 2026-09-15 | — |
 | [0004](ADR-0004-hermes-local-default-execution.md) | Local model executes by default, frontier model by exception | Accepted | 2026-09-16 | extends 0001; amended by 0005 (who executes code) and 0007 |
-| [0005](ADR-0005-sequential-claude-code-team-orchestrated-by-hermes.md) | Sequential Claude Code team (DEV/REVIEW/TEST) orchestrated by Hermes | Accepted | 2026-09-29 | supersedes 0001 Mode B; amends 0004; amended by 0007 (mode names, adapter) |
+| [0005](ADR-0005-sequential-claude-code-team-orchestrated-by-hermes.md) | Sequential Claude Code team (DEV/REVIEW/TEST) orchestrated by Hermes | Accepted | 2026-09-29 | supersedes 0001 Mode B; amends 0004; amended by 0007 (mode names, adapter) and 0008 (git model, kit sync) |
 | [0006](ADR-0006-plans-in-docs-plans.md) | Delivery plans in `docs/plans/`, mandatory beyond three tasks | Accepted | 2026-10-05 | amends 0001 (Plan location) |
 | [0007](ADR-0007-agent-neutral-project-contract-hermes-adapter.md) | Agent-neutral project contract; Hermes specifics in `adapters/hermes/` | Accepted | 2026-10-05 | amends 0001 (mode names), 0004, 0005 (where Hermes rules live) |
+| [0008](ADR-0008-per-repo-agent-autonomy-levels.md) | Per-repository agent autonomy levels (`supervised`, `branch`, `trusted`) | Accepted | 2026-10-23 | amends 0005 (git model, kit sync) |
 
 Withdrawn (never accepted, kept for traceability, never implement from them):
 
@@ -26,7 +27,8 @@ everything in English (0002); `vibecoding-*` naming (0003); local model by defau
 only on the closed criteria of `agents/runbook-generator.agent.md` (0004); code work by a
 sequential Claude Code team orchestrated by Hermes, never by Hermes itself (0005); delivery plans
 in `docs/plans/`, mandatory beyond three tasks (0006); projects are agent-neutral, orchestrator
-specifics live in `adapters/` (0007).
+specifics live in `adapters/` (0007); each repo declares its agents' autonomy level in
+`.ai/autonomy.yaml` — `supervised` by default, `branch` or `trusted` — and humans always approve (0008).
 
 ## Rules
 

@@ -19,8 +19,11 @@ agent/TASK-*  ← sequential Claude Code team, created by scripts/orchestrate.py
 - PRs on `main` require at least 1 approval
 - PRs must pass CI checks before merge
 - Delete branches after merge (for `agent/TASK-*`, also `git worktree remove` the task worktree)
-- Agents never push, merge or rebase: an `agent/TASK-*` branch is pushed and merged by a human
-  after the task reached `APPROVED`
+- Agents never rebase, force-push, or push to / merge into `main`. Who pushes an `agent/TASK-*`
+  branch and who merges it depends on the repo's autonomy level (`.ai/autonomy.yaml`, ADR-0008):
+  at `supervised` a human does both; at `branch` the orchestrator pushes and opens a draft PR at
+  `READY_FOR_APPROVAL` and a human merges; at `trusted` the orchestrator merges after human
+  approval once checks are green
 - Name branches in lowercase kebab-case: `feat/my-component`
 
 ## Naming conventions
