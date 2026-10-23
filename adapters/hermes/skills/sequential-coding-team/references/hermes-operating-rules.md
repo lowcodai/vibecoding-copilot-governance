@@ -27,8 +27,8 @@ In `single-agent` mode it executes Runbooks and documentation work directly.
 | `anthropic/claude-sonnet-5` (escalation only, ADR-0004) | 1,000,000 | — | ~550,000 | ~650,000 | ~750,000 | ~820,000 | ~900,000 |
 | `gpt-5.6-sol` (escalation only, ADR-0004) | 1,050,000 (922,000 max input) | — | ~577,500 | ~682,500 | ~787,500 | ~861,000 | ~945,000 |
 
-Keep the first row identical to Arcane's `model.context_length` (98,304 per HermesVPS2 CHANGELOG
-2026-09-28) and to `dev-factory/gateways.yaml`. Any other model: verify its real
+Keep the first row identical to Arcane's `model.context_length` (98,304, verified 2026-09-28 and
+unchanged by the move to 3M6 on 2026-10-18, `lowcodai/arcane3m6`) and to `dev-factory/gateways.yaml`. Any other model: verify its real
 context window before trusting a number; never reuse a figure measured with another tokenizer.
 
 **2,000-token output cap:** one response cannot carry a large file. Write plans, task contracts
@@ -39,7 +39,7 @@ and tracking files in several small edits, each verified (next section).
 `write_file` calls on sizeable content (roughly above ~1 KB, or text with embedded quotes,
 backticks or newlines) can **fail silently** on some Hermes installations: the tool-call argument
 sanitizer replaces unparseable JSON with an empty object and drops the write, with no visible
-error (NousResearch/hermes-agent#119389, surfaced in the `HermesVPS2` incident, its ADR-0021).
+error (NousResearch/hermes-agent#119389, first seen on Arcane in September 2026).
 
 After every `write_file` on a `docs/operations/` file, a plan, a task contract, or any file
 > ~1 KB, immediately `read_file` it back and confirm the new content is present. If it is stale,
