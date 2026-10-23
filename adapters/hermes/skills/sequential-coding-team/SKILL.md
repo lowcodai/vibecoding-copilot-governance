@@ -47,6 +47,10 @@ pick the next task whose dependencies are all merged.
   level (`.ai/autonomy.yaml`, ADR-0008): the human at `supervised`/`branch` (at `branch` the PR is
   already open — give its URL from `state.json` → `publish.pr_url`); the orchestrator at `trusted`
   (report `state.json` → `merge`).
+- `APPROVED` at autonomy `yolo` (ADR-0009) → no human approval: `orchestrate.py run` itself waited for
+  CI, merged the PR on green and sent red CI back to DEV. Report the merged PR (`publish.pr_url`,
+  `merge`) and the CI cycles (`counters.ci_cycles`); a `BLOCKED` with `max_ci_cycles` means CI stayed
+  red — read the last CI feedback and narrow or split the task.
 - `BLOCKED` → read the last `*-result.json` and `timeline.log`. Classify:
   - ADR gap / contradiction → propose an ADR amendment; do not rewrite the task to dodge it.
   - loop limit reached → narrow the task or split it; restart with a new TASK number.
@@ -57,5 +61,6 @@ pick the next task whose dependencies are all merged.
 
 ## Never
 - Edit code, run DEV/REVIEW/TEST yourself, or start two runs at once (the lock will refuse).
-- Push, merge, rebase, or approve on the human's behalf; or change `.ai/autonomy.yaml`.
+- Push, merge, rebase, or approve on the human's behalf (at `yolo` the orchestrator merges, not you);
+  or change `.ai/autonomy.yaml`.
 - Edit `.ai/runs/**` or loosen `.ai/orchestration.yaml` limits to get a task through.

@@ -30,9 +30,10 @@ gh api repos/{owner}/{repo}/branches/main/protection \
   --field restrictions=null
 ```
 
-## Autonomy levels `branch` and `trusted` (ADR-0008)
+## Autonomy levels `branch`, `trusted` and `yolo` (ADR-0008, ADR-0009)
 
-Agents may push their own branch (and, at `trusted`, merge their own green PR). Branch protection on
+Agents may push their own branch (and, at `trusted` and `yolo`, merge their own green PR; at `yolo`
+without any human approval). Branch protection on
 `main` is the server-side backstop for the invariants (no push to `main`, no force push, no merge
 without checks): enable it on every repo above `supervised` where the plan allows it. Private
 repositories on a GitHub Free plan cannot use branch protection or rulesets; for them the

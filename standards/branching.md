@@ -23,7 +23,8 @@ agent/TASK-*  ← sequential Claude Code team, created by scripts/orchestrate.py
   branch and who merges it depends on the repo's autonomy level (`.ai/autonomy.yaml`, ADR-0008):
   at `supervised` a human does both; at `branch` the orchestrator pushes and opens a draft PR at
   `READY_FOR_APPROVAL` and a human merges; at `trusted` the orchestrator merges after human
-  approval once checks are green
+  approval once checks are green; at `yolo` (ADR-0009) it merges with no human approval once CI is
+  green, and red CI goes back to DEV
 - Name branches in lowercase kebab-case: `feat/my-component`
 
 ## Naming conventions

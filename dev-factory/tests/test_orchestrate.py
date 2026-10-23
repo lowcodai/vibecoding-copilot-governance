@@ -284,7 +284,22 @@ FAKE_GH = textwrap.dedent(
     if sys.argv[1:3] == ["pr", "create"]:
         print("https://github.com/o/r/pull/7")
     if sys.argv[1:3] == ["pr", "checks"]:
-        sys.exit(int(os.environ.get("FAKE_GH_CHECKS_RC", "0")))
+        seq = os.environ.get("FAKE_GH_CHECKS")          # e.g. "pending,fail,pass" — one entry per call
+        if not seq:
+            sys.exit(int(os.environ.get("FAKE_GH_CHECKS_RC", "0")))
+        counter = Path(os.environ["FAKE_GH_LOG"] + ".checks")
+        n = int(counter.read_text()) if counter.exists() else 0
+        counter.write_text(str(n + 1))
+        items = seq.split(",")
+        state = items[min(n, len(items) - 1)]
+        out, rc = {"pass": ("ci\tpass\t1m\thttps://github.com/o/r/actions/runs/41/job/1", 0),
+                   "fail": ("ci\tfail\t1m\thttps://github.com/o/r/actions/runs/42/job/7", 1),
+                   "pending": ("ci\tpending\t0\thttps://github.com/o/r/actions/runs/43/job/9", 8),
+                   "none": ("no checks reported on the 'agent/TASK-0001' branch", 1)}[state]
+        print(out)
+        sys.exit(rc)
+    if sys.argv[1:3] == ["run", "view"]:
+        print("ci / test\tFAILED tests/test_x.py::test_y - AssertionError")
     sys.exit(0)
     '''
 ).lstrip()
@@ -303,6 +318,7 @@ class AutonomyOrchestrateTest(OrchestrateTest):
         os.environ["PATH"] = f"{bin_dir}{os.pathsep}{os.environ['PATH']}"
         os.environ["FAKE_GH_LOG"] = str(self.gh_log)
         os.environ.pop("FAKE_GH_CHECKS_RC", None)
+        os.environ.pop("FAKE_GH_CHECKS", None)
 
     def set_level(self, level, origin=True):
         autonomy.render(self.repo, level)
@@ -413,3 +429,72 @@ class AutonomyOrchestrateTest(OrchestrateTest):
         sh(["git", "commit", "-qm", "drop policy"], self.repo)
         self.assertEqual(self.run_task(), 2)
         self.assertIn("autonomy.py", self.state()["history"][-1]["reason"])
+
+
+class YoloOrchestrateTest(AutonomyOrchestrateTest):
+    """Autonomy `yolo` (ADR-0009): no human approval, merge on green CI, red CI goes back to DEV."""
+
+    def setUp(self):
+        super().setUp()
+        cfg_path = self.repo / ".ai" / "orchestration.yaml"
+        cfg = yaml.safe_load(cfg_path.read_text())
+        cfg["limits"].update({"ci_poll_sec": 0, "ci_no_checks_grace_sec": 0, "max_ci_cycles": 2})
+        cfg_path.write_text(yaml.safe_dump(cfg))
+        self.set_level("yolo")
+
+    def merges(self):
+        return [c for c in self.gh_calls() if c[:2] == ["pr", "merge"]]
+
+    def test_green_ci_is_merged_without_approval(self):
+        os.environ["FAKE_GH_CHECKS"] = "pending,pass"
+        self.assertEqual(self.run_task(), 0)
+        st = self.state()
+        self.assertEqual(st["state"], orchestrate.APPROVED)
+        self.assertTrue(st["merge"]["merged"])
+        self.assertEqual(st["merge"]["checks"], "green")
+        create = [c for c in self.gh_calls() if c[:2] == ["pr", "create"]]
+        self.assertEqual(len(create), 1)
+        self.assertNotIn("--draft", create[0])                      # ready PR, nobody has to undraft it
+        self.assertEqual(self.merges(), [["pr", "merge", "https://github.com/o/r/pull/7", "--squash"]])
+        self.assertEqual([h["to"] for h in st["history"]][-2:], ["READY_FOR_APPROVAL", "APPROVED"])
+
+    def test_red_ci_goes_back_to_dev_with_the_logs_then_merges(self):
+        os.environ["FAKE_GH_CHECKS"] = "fail,pass"
+        self.assertEqual(self.run_task(), 0)
+        st = self.state()
+        self.assertEqual(st["state"], orchestrate.APPROVED)
+        self.assertEqual(st["counters"]["ci_cycles"], 1)
+        order = (self.repo / ".ai/runs/TASK-0001/dev-work-order.md").read_text()
+        self.assertIn("CI is red", order)
+        self.assertIn("FAILED tests/test_x.py::test_y", order)        # failing logs reach DEV
+        self.assertEqual(len([c for c in self.gh_calls() if c[:2] == ["pr", "create"]]), 1)   # PR reused
+        self.assertEqual(self.argv("dev").count("--bare"), 0)
+        heads = subprocess.run(["git", "ls-remote", "--heads", "origin"], cwd=self.repo, capture_output=True, text=True).stdout
+        self.assertNotIn("refs/heads/main", heads)                    # never pushed main
+        self.assertEqual(len(self.merges()), 1)
+
+    def test_ci_still_red_after_max_cycles_blocks_without_merging(self):
+        os.environ["FAKE_GH_CHECKS"] = "fail"
+        self.assertEqual(self.run_task(), 2)
+        st = self.state()
+        self.assertEqual(st["state"], orchestrate.BLOCKED)
+        self.assertIn("max_ci_cycles=2", st["history"][-1]["reason"])
+        self.assertEqual(self.merges(), [])
+
+    def test_repo_without_ci_is_merged(self):
+        os.environ["FAKE_GH_CHECKS"] = "none"
+        self.assertEqual(self.run_task(), 0)
+        self.assertEqual(self.state()["merge"]["checks"], "none")
+
+    def test_no_pull_request_blocks(self):
+        sh(["git", "remote", "remove", "origin"], self.repo)
+        self.assertEqual(self.run_task(), 2)
+        self.assertIn("no pull request", self.state()["history"][-1]["reason"])
+
+
+# The level-specific classes reuse the fixtures of their parent, not its test methods (each level
+# has its own expectations; the parent's tests already ran at their own level).
+for _cls, _parent in ((AutonomyOrchestrateTest, OrchestrateTest), (YoloOrchestrateTest, AutonomyOrchestrateTest)):
+    for _name in dir(_parent):
+        if _name.startswith("test_") and _name not in _cls.__dict__:
+            setattr(_cls, _name, None)

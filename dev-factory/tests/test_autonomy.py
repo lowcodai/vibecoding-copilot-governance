@@ -121,19 +121,21 @@ class PolicyTest(unittest.TestCase):
         self.assertEqual(autonomy.effective_level(plain)[0], "supervised")
 
     def test_deny_rules_per_level(self):
-        sup, br, tr = (set(autonomy.deny_rules(lv)) for lv in autonomy.LEVELS)
+        self.assertEqual(autonomy.LEVELS, ("supervised", "branch", "trusted", "yolo"))
+        sup, br, tr, yo = (set(autonomy.deny_rules(lv)) for lv in autonomy.LEVELS)
         for rule in ("Bash(git push:*)", "Bash(git merge:*)", "Bash(curl:*)", "Bash(wget:*)", "Bash(gh:*)"):
             self.assertIn(rule, sup)
-            self.assertNotIn(rule, br)
-            self.assertNotIn(rule, tr)
+            for wider in (br, tr, yo):
+                self.assertNotIn(rule, wider)
         self.assertIn("Bash(gh pr merge:*)", br)
         self.assertNotIn("Bash(gh pr merge:*)", tr)
+        self.assertNotIn("Bash(gh pr merge:*)", yo)
         invariants = {"Bash(git rebase:*)", "Bash(git pull:*)", "Bash(git reset --hard:*)", "Read(**/.env)",
                       "Edit(./.ai/autonomy.yaml)", "Edit(./.claude/**)", "Edit(./.ai/roles/**)",
                       "Edit(./scripts/orchestrate.py)"}
-        for level_rules in (sup, br, tr):
+        for level_rules in (sup, br, tr, yo):
             self.assertTrue(invariants <= level_rules, invariants - level_rules)
-        for level_rules in (br, tr):
+        for level_rules in (br, tr, yo):
             self.assertTrue({"Bash(git push --force:*)", "Bash(git push origin main:*)", "Bash(gh pr merge --admin:*)"} <= level_rules)
 
     def test_disallowed_tools(self):
@@ -368,6 +370,22 @@ class GuardianLevelTest(unittest.TestCase):
         wrong_base = json.dumps({"headRefName": "agent/TASK-0001", "baseRefName": "release", "isDraft": False})
         for view in (other, draft, wrong_base, "not json"):
             self.assert_blocked(["gh pr merge 7 --squash"], repo, FAKE_GH_VIEW=view)
+
+    def test_yolo_drives_its_own_pr_to_green_and_merges_it(self):
+        repo = self.repo("yolo")
+        own = json.dumps({"headRefName": "agent/TASK-0001", "baseRefName": "main", "isDraft": False})
+        self.assert_allowed(["git push -u origin agent/TASK-0001", "gh pr create --title t --body b",
+                             "gh pr ready 7", "gh pr edit 7 --body b", "gh issue create --title t --body b",
+                             "gh run view 42 --log-failed", "gh run rerun 42", "gh pr checks 7 --watch",
+                             "gh pr merge 7 --squash"], repo, FAKE_GH_VIEW=own)
+        self.assert_blocked(["gh pr merge 7 --squash"], repo, FAKE_GH_VIEW=own, FAKE_GH_CHECKS_RC="1")
+        self.assert_blocked(["gh pr merge 7 --squash"], repo, FAKE_GH_VIEW=own, FAKE_GH_CHECKS_RC="8")
+        self.assert_blocked(["git push origin main", "git push -f origin agent/TASK-0001", "gh pr merge 7 --admin",
+                             "gh api -X POST repos/o/r/merges", "gh repo delete o/r", "gh release create v1",
+                             "gh secret set X"], repo, FAKE_GH_VIEW=own)
+        # Orchestrated DEV still never pushes or merges: the orchestrator does.
+        self.assert_blocked(["git push -u origin agent/TASK-0001", "gh pr merge 7 --squash", "gh pr create --title t"],
+                            repo, ORCHESTRATE_ROLE="dev", FAKE_GH_VIEW=own)
 
     def test_level_escalation_on_the_branch_is_ignored(self):
         repo = self.repo("supervised")
