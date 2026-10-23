@@ -1,7 +1,7 @@
 # ADR-0009 — Autonomy level `yolo`: agents merge their own pull requests on green CI
 
 **Date:** 2026-10-23
-**Status:** Proposed
+**Status:** Accepted (2026-10-23, Capitaine)
 **Decision makers:** Capitaine (Jérémie Coste)
 **Technical context:** autonomy levels of ADR-0008 (`supervised`, `branch`, `trusted`); Arcane (Hermes) on
 3M6 driving `scripts/orchestrate.py`; repositories without branch protection on private GitHub Free plans.
