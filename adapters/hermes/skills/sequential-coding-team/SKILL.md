@@ -43,7 +43,10 @@ pick the next task whose dependencies are all merged.
 
 - `READY_FOR_APPROVAL` → summarise for the human: branch, commits (`git log base..branch`),
   review summary, validation results. Wait for their decision. On approval run
-  `orchestrate.py approve TASK-NNNN --by "<name>"`; the human merges.
+  `orchestrate.py approve TASK-NNNN --by "<name>"`. Who merges depends on the repo's autonomy
+  level (`.ai/autonomy.yaml`, ADR-0008): the human at `supervised`/`branch` (at `branch` the PR is
+  already open — give its URL from `state.json` → `publish.pr_url`); the orchestrator at `trusted`
+  (report `state.json` → `merge`).
 - `BLOCKED` → read the last `*-result.json` and `timeline.log`. Classify:
   - ADR gap / contradiction → propose an ADR amendment; do not rewrite the task to dodge it.
   - loop limit reached → narrow the task or split it; restart with a new TASK number.
@@ -54,5 +57,5 @@ pick the next task whose dependencies are all merged.
 
 ## Never
 - Edit code, run DEV/REVIEW/TEST yourself, or start two runs at once (the lock will refuse).
-- Push, merge, rebase, or approve on the human's behalf.
+- Push, merge, rebase, or approve on the human's behalf; or change `.ai/autonomy.yaml`.
 - Edit `.ai/runs/**` or loosen `.ai/orchestration.yaml` limits to get a task through.

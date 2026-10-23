@@ -15,28 +15,35 @@ User ─► Hermes (Engineering Manager, gateway hermes-orchestrator 98k/2k/0.2)
           ├─► Claude Code REVIEW  (cc-review  32k / 2k / 0.1)  diff + ACs + ADR excerpts
           └─► Claude Code TEST    (cc-test    32k / 2k / 0.1)  validation results
           ▼
-        READY_FOR_APPROVAL ─► human validation ─► merge (human)
+        READY_FOR_APPROVAL ─► human validation ─► merge (human, or the orchestrator at `trusted`)
 ```
+
+How far agents may go (push, merge, curl/wget, gh) is a per-repo **autonomy level** declared in
+`.ai/autonomy.yaml` (ADR-0008, proposed): `supervised` (default), `branch` or `trusted`.
 
 ## Contents
 
 | Path | Copied to project as | Purpose |
 |---|---|---|
 | `project-template/.ai/orchestration.yaml` | `.ai/orchestration.yaml` | agents, gateways, transitions limits, validation commands, git policy |
+| `project-template/.ai/autonomy.yaml` | `.ai/autonomy.yaml` | autonomy level of the repo (human-owned, protected; ADR-0008) |
 | `project-template/.ai/tasks/TASK-template.md` | `.ai/tasks/TASK-template.md` | task contract skeleton (`orchestrate.py new`) |
 | `project-template/.ai/roles/*.md` | `.ai/roles/*.md` | role prompts + JSON result contracts |
-| `project-template/.claude/settings.json` | `.claude/settings.json` | deny rules (push/merge/rebase, secrets, orchestrator files) + hook wiring |
+| `project-template/.claude/settings.json` | `.claude/settings.json` | deny rules + hook wiring — **generated** from the level by `autonomy.py render` |
+| `project-template/.claude/hooks/autonomy.py` | `.claude/hooks/autonomy.py` | the only policy definition: levels, effective level, `render`, `check` |
 | `project-template/.claude/hooks/tool_guardian.py` | `.claude/hooks/tool_guardian.py` | PreToolUse (Bash): blocks destructive, exfiltrating or policy-breaking commands |
 | `project-template/.claude/hooks/secrets_scanner.py` | `.claude/hooks/secrets_scanner.py` | PreToolUse (Write/Edit, `git commit`) + `--range` CLI used as a validation |
 | `project-template/.claude/hooks/secrets-allowlist.txt` | `.claude/hooks/secrets-allowlist.txt` | human-owned path/pattern exceptions for the scanner |
-| `project-template/CLAUDE.md` | `CLAUDE.md` | short project memory for interactive sessions |
+| `project-template/CLAUDE.md` | `CLAUDE.md` | short project memory for interactive sessions and DEV (one generated autonomy line) |
 | `project-template/scripts/orchestrate.py` | `scripts/orchestrate.py` | the state machine |
 | `gateways.yaml` | — (infra reference) | gateway profiles + enforcement checklist |
 | `project-template/docs/` | `docs/{prd,adr,plans,runbooks,operations}/` | agent-neutral docs skeleton (ADR-0007) |
 | `tests/` | — | `python3 -m unittest discover -s dev-factory/tests` |
 
-`vibecoding-bootstrap/scripts/sync-governance.sh` copies `project-template/` into projects
-(never overwriting an existing file).
+`vibecoding-bootstrap/scripts/sync-governance.sh` copies `project-template/` into projects. Kit-owned
+files (`.claude/settings.json`, `.claude/hooks/*.py`, `scripts/orchestrate.py`) are refreshed on every
+sync; project-tuned files (`.ai/orchestration.yaml`, `.ai/roles/`, `CLAUDE.md` outside its autonomy
+block, the secrets allowlist, `docs/`) are never overwritten (ADR-0008 DEC-007).
 
 ## Run a task
 
@@ -45,23 +52,54 @@ python3 scripts/orchestrate.py new TASK-0042 --title "Add JWT refresh"
 # Hermes fills .ai/tasks/TASK-0042.md (objective, scope, ACs, adrs, validations)
 python3 scripts/orchestrate.py run TASK-0042      # start or resume; exit 0 = READY, 2 = BLOCKED
 python3 scripts/orchestrate.py status TASK-0042
-python3 scripts/orchestrate.py approve TASK-0042 --by "Jeremie"    # then merge agent/TASK-0042
+python3 scripts/orchestrate.py approve TASK-0042 --by "Jeremie"    # then merge agent/TASK-0042 (merged for you at `trusted`)
 python3 scripts/orchestrate.py rework TASK-0042 --feedback "..."   # human sends it back to DEV
 ```
 
 Per run, `.ai/runs/TASK-0042/` holds `state.json`, `{dev,review,test}-result.json`,
 `*-work-order.md`, `*-raw-output.txt`, `validations.json`, `logs/*.log`, `timeline.log`.
 
+## Autonomy levels (ADR-0008, proposed)
+
+The level lives in `.ai/autonomy.yaml`. The **effective** level is the most restrictive of that file
+and its copy on the base branch: raising it only works once a human has merged the change; a missing
+or invalid file means `supervised`. No environment variable is consulted.
+
+| Action | `supervised` | `branch` | `trusted` |
+|---|---|---|---|
+| Push (interactive) | no | current non-`main` branch only: `git push -u origin <branch>` | same |
+| Push + draft PR (orchestrated) | no | orchestrator, at `READY_FOR_APPROVAL` | same |
+| Merge (interactive) | no | `main` into one's own branch | + own PR when all checks are green |
+| Merge (orchestrated) | human | human | orchestrator, after `orchestrate.py approve`, checks green |
+| curl / wget | no | yes (no pipe to a shell, no upload) | yes |
+| gh | no | read-only, `pr create --draft`, `pr comment` (DEV: read-only) | + `pr merge` of own green PR |
+
+At every level: no force push, no push to / commit on / merge into `main`, no tag push, no `rebase`,
+no `git pull`, no `--no-verify`, no push redirection (`remote.*.push`, `url.*.insteadOf`,
+`core.hooksPath`, `git -c`), no secrets read or committed, no protected-path change, no `sudo`,
+no exfiltration, no publication. DEV never pushes or merges itself, at any level.
+
+Change a repo's level with `vibecoding-bootstrap/scripts/sync-governance.sh --autonomy <level>`, then
+review and merge the diff. `autonomy.py check` (built into every orchestrated run as the
+`autonomy-check` validation) fails when a generated file no longer matches the level.
+
+**No branch protection, no server-side backstop.** At `branch` and `trusted`, enable branch
+protection on `main` where the GitHub plan allows it (`policies/branch-protection.md`); private repos
+on a Free plan cannot, and then the hook's narrow push allow-list is the only barrier.
+
 ## Guard rails: hooks, deny rules, deterministic scan
 
-| Layer | Applies to | Enforced by |
-|---|---|---|
-| `--tools` list | every role | Claude Code (REVIEW/TEST only have Read, Glob, Grep) |
-| Deny rules (`.claude/settings.json`) | every role | Claude Code permissions |
-| `tool_guardian.py` (PreToolUse, Bash) | DEV + interactive sessions | hook, exit 2 blocks, fail-closed |
-| `secrets_scanner.py` (PreToolUse, Write/Edit and `git commit`) | DEV + interactive sessions | hook, exit 2 blocks, fail-closed |
-| `secrets-scan` validation (`--range base..HEAD`) | every task, before TEST | orchestrator — independent of hooks |
-| Protected paths (`git.protected_paths`) | every task, after DEV | orchestrator — a diff touching `.claude/`, `.ai/orchestration.yaml`, `.ai/roles/` or `orchestrate.py` goes back to DEV |
+| Layer | Applies to | Enforced by | Depends on the level |
+|---|---|---|---|
+| `--tools` list | every role | Claude Code (REVIEW/TEST only have Read, Glob, Grep) | no |
+| Deny rules (`.claude/settings.json`) | DEV + interactive sessions (REVIEW/TEST via `--settings`) | Claude Code permissions | yes — rendered by `autonomy.py` |
+| `tool_guardian.py` (PreToolUse, Bash) | DEV + interactive sessions | hook, exit 2 blocks, fail-closed | yes — reads the effective level |
+| `secrets_scanner.py` (PreToolUse, Write/Edit and `git commit`) | DEV + interactive sessions | hook, exit 2 blocks, fail-closed | no |
+| `disallowed_tools` | every role | orchestrator (`Task`, `Agent`; `WebFetch`, `WebSearch` at `supervised`) | yes |
+| `autonomy-check` validation | every task, before TEST | orchestrator — generated files match the level | — |
+| `secrets-scan` validation (`--range base..HEAD`) | every task, before TEST | orchestrator — independent of hooks | no |
+| Protected paths (`git.protected_paths` + the policy's own list) | every task, after DEV | orchestrator — a diff touching `.claude/`, `.ai/autonomy.yaml`, `.ai/orchestration.yaml`, `.ai/roles/` or `orchestrate.py` goes back to DEV | no |
+| Push, PR, merge | orchestrated tasks | orchestrator — deterministic, never an agent | yes |
 
 Known false positives of the scanner go in `.claude/hooks/secrets-allowlist.txt`
 (`<path glob> <PATTERN,...>` per line). It ships with the documentation examples of the Copilot
@@ -73,7 +111,8 @@ orchestrator refuses to start DEV (`BLOCKED`) if `.claude/settings.json` or the 
 not committed on the base branch. Hook logs go to `.ai/runs/<task>/hooks/*.jsonl` during
 orchestrated runs (`CLAUDE_HOOK_LOG_DIR`), `~/.local/state/claude-hooks/<project>/` otherwise —
 never inside the worktree, which must stay clean. Overrides (`GUARD_MODE`, `TOOL_GUARD_ALLOWLIST`,
-`SECRETS_ALLOWLIST`, `SECRETS_BLOCK_SEVERITY`, `SKIP_*`) are environment variables set by humans.
+`SECRETS_ALLOWLIST`, `SECRETS_BLOCK_SEVERITY`, `SKIP_*`) are environment variables set by humans; none
+of them can raise the autonomy level.
 
 ## Design choices that matter on a 27B local model
 
