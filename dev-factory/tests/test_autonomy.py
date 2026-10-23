@@ -388,6 +388,21 @@ class GuardianLevelTest(unittest.TestCase):
         self.assert_blocked(["git push -u origin agent/TASK-0001"], repo,
                             AUTONOMY_LEVEL="trusted", CLAUDE_PROJECT_DIR=str(self.repo("trusted")))
 
+    def test_hook_and_orchestrator_leave_no_bytecode_in_the_repo(self):
+        # Importing autonomy.py must not write .claude/hooks/__pycache__: in a repo that does not
+        # ignore it, the worktree would be dirty after every command and DEV would never finish.
+        repo = make_repo(self.tmp, "branch", name="nobytecode")
+        shutil.copytree(HOOKS, repo / ".claude" / "hooks", ignore=shutil.ignore_patterns("__pycache__"))
+        shutil.copytree(TEMPLATE / "scripts", repo / "scripts", ignore=shutil.ignore_patterns("__pycache__"))
+        guard = repo / ".claude" / "hooks" / "tool_guardian.py"
+        payload = {"tool_name": "Bash", "tool_input": {"command": "git status"}, "cwd": str(repo)}
+        env = {**self.env, "PYTHONDONTWRITEBYTECODE": ""}
+        env.pop("PYTHONDONTWRITEBYTECODE")
+        proc = subprocess.run([sys.executable, str(guard)], input=json.dumps(payload), text=True, capture_output=True, env=env)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        subprocess.run([sys.executable, str(repo / "scripts" / "orchestrate.py"), "--help"], capture_output=True, env=env)
+        self.assertEqual(list(repo.rglob("__pycache__")), [])
+
     def test_block_message_names_the_level(self):
         proc = self.run_guard("curl -s https://example.com", self.repo("supervised"))
         self.assertIn("autonomy level `supervised`", proc.stderr)
