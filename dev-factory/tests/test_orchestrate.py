@@ -23,6 +23,7 @@ HERE = Path(__file__).resolve().parent
 TEMPLATE = HERE.parent / "project-template"
 sys.path.insert(0, str(TEMPLATE / "scripts"))
 import orchestrate  # noqa: E402
+import autonomy  # noqa: E402  (imported by orchestrate from the template's .claude/hooks)
 
 FAKE_AGENT = textwrap.dedent(
     r'''
@@ -50,6 +51,10 @@ FAKE_AGENT = textwrap.dedent(
             Path(".claude/hooks/secrets-allowlist.txt").write_text("* GENERIC_SECRET\n")
             subprocess.run(["git", "add", "-A"], check=True)
             subprocess.run(["git", "commit", "-qm", f"chore: widen allowlist {n}"], check=True)
+            res = {"status": "DONE", "summary": "done"}
+        elif action == "escalate":
+            Path(".ai/autonomy.yaml").write_text("version: 1\nlevel: trusted\n")
+            subprocess.run(["git", "commit", "-qam", f"chore: raise autonomy {n}"], check=True)
             res = {"status": "DONE", "summary": "done"}
         elif action == "restore":
             subprocess.run(["git", "checkout", "HEAD~1", "--", ".claude/hooks/secrets-allowlist.txt"], check=True)
@@ -267,3 +272,144 @@ class HelpersTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+FAKE_GH = textwrap.dedent(
+    r'''
+    #!/usr/bin/env python3
+    import json, os, sys
+    from pathlib import Path
+    with Path(os.environ["FAKE_GH_LOG"]).open("a") as fh:
+        fh.write(json.dumps(sys.argv[1:]) + "\n")
+    if sys.argv[1:3] == ["pr", "create"]:
+        print("https://github.com/o/r/pull/7")
+    if sys.argv[1:3] == ["pr", "checks"]:
+        sys.exit(int(os.environ.get("FAKE_GH_CHECKS_RC", "0")))
+    sys.exit(0)
+    '''
+).lstrip()
+
+
+class AutonomyOrchestrateTest(OrchestrateTest):
+    """Orchestrator behaviour per autonomy level (ADR-0008)."""
+
+    def setUp(self):
+        super().setUp()
+        bin_dir = self.tmp / "bin"
+        bin_dir.mkdir()
+        (bin_dir / "gh").write_text(FAKE_GH)
+        (bin_dir / "gh").chmod(0o755)
+        self.gh_log = self.tmp / "gh.log"
+        os.environ["PATH"] = f"{bin_dir}{os.pathsep}{os.environ['PATH']}"
+        os.environ["FAKE_GH_LOG"] = str(self.gh_log)
+        os.environ.pop("FAKE_GH_CHECKS_RC", None)
+
+    def set_level(self, level, origin=True):
+        autonomy.render(self.repo, level)
+        if origin:
+            remote = self.tmp / "origin.git"
+            sh(["git", "init", "-q", "--bare", "-b", "main", str(remote)], self.tmp)
+            sh(["git", "remote", "add", "origin", str(remote)], self.repo)
+        sh(["git", "add", "-A"], self.repo)
+        sh(["git", "commit", "-qm", f"autonomy {level}"], self.repo)
+
+    def gh_calls(self):
+        return [json.loads(line) for line in self.gh_log.read_text().splitlines()] if self.gh_log.exists() else []
+
+    def disallowed(self, role="dev"):
+        args = self.argv(role)
+        return args[args.index("--disallowedTools") + 1].split(",")
+
+    def test_supervised_publishes_nothing(self):
+        self.assertEqual(self.run_task(), 0)
+        st = self.state()
+        self.assertEqual(st["state"], orchestrate.READY)
+        self.assertNotIn("publish", st)
+        self.assertEqual(self.gh_calls(), [])
+        self.assertIn("WebFetch", self.disallowed())
+        self.assertIn("autonomy supervised", (self.repo / ".ai/runs/TASK-0001/timeline.log").read_text())
+
+    def test_branch_pushes_task_branch_and_opens_draft_pr_but_never_merges(self):
+        self.set_level("branch")
+        self.assertEqual(self.run_task(), 0)
+        st = self.state()
+        self.assertEqual(st["state"], orchestrate.READY)
+        self.assertTrue(st["publish"]["pushed"], st["publish"])
+        self.assertEqual(st["publish"]["pr_url"], "https://github.com/o/r/pull/7")
+        heads = subprocess.run(["git", "ls-remote", "--heads", "origin"], cwd=self.repo, capture_output=True, text=True).stdout
+        self.assertIn("refs/heads/agent/TASK-0001", heads)
+        self.assertNotIn("refs/heads/main", heads)
+        create = [c for c in self.gh_calls() if c[:2] == ["pr", "create"]]
+        self.assertEqual(len(create), 1)
+        self.assertIn("--draft", create[0])
+        self.assertEqual(create[0][create[0].index("--base") + 1], "main")
+        self.assertNotIn("WebFetch", self.disallowed())
+        self.assertIn("Task", self.disallowed())
+        self.assertEqual(orchestrate.main(["--repo", str(self.repo), "approve", "TASK-0001", "--by", "me"]), 0)
+        self.assertEqual(self.state()["state"], orchestrate.APPROVED)
+        self.assertNotIn("merge", self.state())
+        self.assertFalse([c for c in self.gh_calls() if c[:2] == ["pr", "merge"]])
+
+    def test_branch_push_failure_keeps_task_ready(self):
+        self.set_level("branch", origin=False)
+        self.assertEqual(self.run_task(), 0)
+        st = self.state()
+        self.assertEqual(st["state"], orchestrate.READY)
+        self.assertFalse(st["publish"]["pushed"])
+        self.assertIn("git push failed", st["publish"]["error"])
+
+    def test_trusted_merges_after_human_approval_only_when_checks_are_green(self):
+        self.set_level("trusted")
+        self.assertEqual(self.run_task(), 0)
+        self.assertFalse([c for c in self.gh_calls() if c[:2] == ["pr", "merge"]])   # never before approval
+        self.assertEqual(orchestrate.main(["--repo", str(self.repo), "approve", "TASK-0001", "--by", "me"]), 0)
+        st = self.state()
+        self.assertEqual(st["state"], orchestrate.APPROVED)
+        self.assertTrue(st["merge"]["merged"], st["merge"])
+        calls = self.gh_calls()
+        url = "https://github.com/o/r/pull/7"
+        self.assertIn(["pr", "ready", url], calls)
+        self.assertIn(["pr", "checks", url], calls)
+        self.assertIn(["pr", "merge", url, "--squash"], calls)
+
+    def test_trusted_red_checks_leave_merge_to_a_human(self):
+        self.set_level("trusted")
+        self.assertEqual(self.run_task(), 0)
+        os.environ["FAKE_GH_CHECKS_RC"] = "1"
+        self.assertEqual(orchestrate.main(["--repo", str(self.repo), "approve", "TASK-0001", "--by", "me"]), 0)
+        st = self.state()
+        self.assertEqual(st["state"], orchestrate.APPROVED)
+        self.assertFalse(st["merge"]["merged"])
+        self.assertIn("checks not all green", st["merge"]["error"])
+        self.assertFalse([c for c in self.gh_calls() if c[:2] == ["pr", "merge"]])
+
+    def test_dev_raising_the_level_is_sent_back_even_if_config_forgets_the_path(self):
+        cfg_path = self.repo / ".ai" / "orchestration.yaml"
+        cfg = yaml.safe_load(cfg_path.read_text())
+        cfg["git"]["protected_paths"] = [".claude/"]           # an old, tuned config
+        cfg_path.write_text(yaml.safe_dump(cfg))
+        sh(["git", "commit", "-qam", "old config"], self.repo)
+        os.environ["FAKE_DEV"] = "escalate,ok"   # later runs keep the escalation in the diff
+        self.assertEqual(self.run_task(), 2)
+        reasons = [h["reason"] for h in self.state()["history"]]
+        self.assertTrue(any(r.startswith("protected paths modified: .ai/autonomy.yaml") for r in reasons), reasons)
+
+    def test_autonomy_check_validation_catches_hand_edited_settings(self):
+        settings = json.loads((self.repo / ".claude/settings.json").read_text())
+        settings["permissions"]["deny"].remove("Bash(curl:*)")
+        (self.repo / ".claude/settings.json").write_text(json.dumps(settings, indent=2))
+        sh(["git", "commit", "-qam", "hand edit"], self.repo)
+        orch = orchestrate.Orchestrator(self.repo, "TASK-0001")
+        st = orch.init_state()
+        orch.step(st)
+        results = orch.run_validations(Path(st["worktree"]), st["base_sha"])
+        check = next(r for r in results if r["name"] == "autonomy-check")
+        self.assertEqual(results[0]["name"], "autonomy-check")
+        self.assertEqual(check["exit_code"], 1)
+        self.assertIn("settings.json", check["log_tail"])
+
+    def test_dev_preflight_requires_the_autonomy_module(self):
+        sh(["git", "rm", "-q", ".claude/hooks/autonomy.py"], self.repo)
+        sh(["git", "commit", "-qm", "drop policy"], self.repo)
+        self.assertEqual(self.run_task(), 2)
+        self.assertIn("autonomy.py", self.state()["history"][-1]["reason"])
