@@ -1,7 +1,7 @@
 # ADR-0008 — Per-repository agent autonomy levels
 
 **Date:** 2026-10-23
-**Status:** Proposed
+**Status:** Accepted (2026-10-23, Capitaine)
 **Decision makers:** Capitaine (Jérémie Coste)
 **Technical context:** dev factory kit (`dev-factory/project-template/`) copied into every consumer
 repo by `vibecoding-bootstrap`; Claude Code sessions (interactive and orchestrated by

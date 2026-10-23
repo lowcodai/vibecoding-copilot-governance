@@ -19,7 +19,7 @@ User ─► Hermes (Engineering Manager, gateway hermes-orchestrator 98k/2k/0.2)
 ```
 
 How far agents may go (push, merge, curl/wget, gh) is a per-repo **autonomy level** declared in
-`.ai/autonomy.yaml` (ADR-0008, proposed): `supervised` (default), `branch` or `trusted`.
+`.ai/autonomy.yaml` (ADR-0008): `supervised` (default), `branch` or `trusted`.
 
 ## Contents
 
@@ -59,7 +59,7 @@ python3 scripts/orchestrate.py rework TASK-0042 --feedback "..."   # human sends
 Per run, `.ai/runs/TASK-0042/` holds `state.json`, `{dev,review,test}-result.json`,
 `*-work-order.md`, `*-raw-output.txt`, `validations.json`, `logs/*.log`, `timeline.log`.
 
-## Autonomy levels (ADR-0008, proposed)
+## Autonomy levels (ADR-0008)
 
 The level lives in `.ai/autonomy.yaml`. The **effective** level is the most restrictive of that file
 and its copy on the base branch: raising it only works once a human has merged the change; a missing
