@@ -14,7 +14,8 @@ consumer projects, see `dev-factory/project-template/docs/adr/README.md`.
 | [0005](ADR-0005-sequential-claude-code-team-orchestrated-by-hermes.md) | Sequential Claude Code team (DEV/REVIEW/TEST) orchestrated by Hermes | Accepted | 2026-09-29 | supersedes 0001 Mode B; amends 0004; amended by 0007 (mode names, adapter) and 0008 (git model, kit sync) |
 | [0006](ADR-0006-plans-in-docs-plans.md) | Delivery plans in `docs/plans/`, mandatory beyond three tasks | Accepted | 2026-10-05 | amends 0001 (Plan location) |
 | [0007](ADR-0007-agent-neutral-project-contract-hermes-adapter.md) | Agent-neutral project contract; Hermes specifics in `adapters/hermes/` | Accepted | 2026-10-05 | amends 0001 (mode names), 0004, 0005 (where Hermes rules live) |
-| [0008](ADR-0008-per-repo-agent-autonomy-levels.md) | Per-repository agent autonomy levels (`supervised`, `branch`, `trusted`) | Accepted | 2026-10-23 | amends 0005 (git model, kit sync) |
+| [0008](ADR-0008-per-repo-agent-autonomy-levels.md) | Per-repository agent autonomy levels (`supervised`, `branch`, `trusted`) | Accepted | 2026-10-23 | amends 0005 (git model, kit sync); amended by 0009 (level `yolo`) |
+| [0009](ADR-0009-autonomy-level-yolo.md) | Autonomy level `yolo`: agents merge their own PRs on green CI | Proposed | 2026-10-23 | amends 0008 (levels, rollback) and 0005 (human validation, at `yolo` only) |
 
 Withdrawn (never accepted, kept for traceability, never implement from them):
 

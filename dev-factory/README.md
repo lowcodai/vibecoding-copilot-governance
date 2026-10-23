@@ -59,20 +59,20 @@ python3 scripts/orchestrate.py rework TASK-0042 --feedback "..."   # human sends
 Per run, `.ai/runs/TASK-0042/` holds `state.json`, `{dev,review,test}-result.json`,
 `*-work-order.md`, `*-raw-output.txt`, `validations.json`, `logs/*.log`, `timeline.log`.
 
-## Autonomy levels (ADR-0008)
+## Autonomy levels (ADR-0008, ADR-0009)
 
 The level lives in `.ai/autonomy.yaml`. The **effective** level is the most restrictive of that file
 and its copy on the base branch: raising it only works once a human has merged the change; a missing
 or invalid file means `supervised`. No environment variable is consulted.
 
-| Action | `supervised` | `branch` | `trusted` |
-|---|---|---|---|
-| Push (interactive) | no | current non-`main` branch only: `git push -u origin <branch>` | same |
-| Push + draft PR (orchestrated) | no | orchestrator, at `READY_FOR_APPROVAL` | same |
-| Merge (interactive) | no | `main` into one's own branch | + own PR when all checks are green |
-| Merge (orchestrated) | human | human | orchestrator, after `orchestrate.py approve`, checks green |
-| curl / wget | no | yes (no pipe to a shell, no upload) | yes |
-| gh | no | read-only, `pr create --draft`, `pr comment` (DEV: read-only) | + `pr merge` of own green PR |
+| Action | `supervised` | `branch` | `trusted` | `yolo` |
+|---|---|---|---|---|
+| Push (interactive) | no | current non-`main` branch only: `git push -u origin <branch>` | same | same |
+| Push + PR (orchestrated) | no | orchestrator, draft PR, at `READY_FOR_APPROVAL` | same | orchestrator, ready PR |
+| Merge (interactive) | no | `main` into one's own branch | + own PR when all checks are green | same; the agent fixes red CI first |
+| Merge (orchestrated) | human | human | orchestrator, after `orchestrate.py approve`, checks green | orchestrator, **no approval**, on green CI; red CI goes back to DEV (`max_ci_cycles`) |
+| curl / wget | no | yes (no pipe to a shell, no upload) | yes | yes |
+| gh | no | read-only, `pr create --draft`, `pr comment` (DEV: read-only) | + `pr merge` of own green PR | + `pr edit/ready`, `issue`, `run rerun` |
 
 At every level: no force push, no push to / commit on / merge into `main`, no tag push, no `rebase`,
 no `git pull`, no `--no-verify`, no push redirection (`remote.*.push`, `url.*.insteadOf`,
