@@ -35,6 +35,7 @@ FAKE_AGENT = textwrap.dedent(
     counter = Path(os.environ["FAKE_STATE_DIR"]) / f"{role}.count"
     n = int(counter.read_text()) if counter.exists() else 0
     counter.write_text(str(n + 1))
+    (Path(os.environ["FAKE_STATE_DIR"]) / f"{role}.argv").write_text(json.dumps(sys.argv[1:]))
     script = os.environ.get(f"FAKE_{role.upper()}", "").split(",")
     action = script[min(n, len(script) - 1)] if script and script[0] else "ok"
     if action == "garbage":
@@ -96,12 +97,14 @@ class OrchestrateTest(unittest.TestCase):
         fake.chmod(0o755)
         cfg_path = self.repo / ".ai" / "orchestration.yaml"
         cfg = yaml.safe_load(cfg_path.read_text())
-        cfg["runner"]["command"] = [sys.executable, str(fake)]
+        # Keep the template's arguments: the fake agent records them (see test_role_flags_*).
+        cfg["runner"]["command"] = [sys.executable, str(fake)] + cfg["runner"]["command"][1:]
         cfg["validation"]["commands"] = [{"name": "unit", "run": "test ! -f FAIL_MARKER"}]
         cfg_path.write_text(yaml.safe_dump(cfg))
 
         state_dir = self.tmp / "fake_state"
         state_dir.mkdir()
+        self.state_dir = state_dir
         self.env_backup = dict(os.environ)
         os.environ["FAKE_STATE_DIR"] = str(state_dir)
         for k in ("FAKE_DEV", "FAKE_REVIEW", "FAKE_TEST"):
@@ -131,6 +134,21 @@ class OrchestrateTest(unittest.TestCase):
         # human approval
         self.assertEqual(orchestrate.main(["--repo", str(self.repo), "approve", "TASK-0001", "--by", "me"]), 0)
         self.assertEqual(self.state()["state"], orchestrate.APPROVED)
+
+    def argv(self, role):
+        return json.loads((self.state_dir / f"{role}.argv").read_text())
+
+    def test_role_flags_dev_keeps_hooks_review_and_test_are_bare(self):
+        # --bare skips hooks: DEV must never get it, or tool_guardian/secrets_scanner do not run.
+        self.assertEqual(self.run_task(), 0)
+        dev = self.argv("dev")
+        self.assertNotIn("--bare", dev)
+        self.assertIn("--setting-sources", dev)
+        self.assertEqual(dev[dev.index("--setting-sources") + 1], "project")
+        for role in ("review", "test"):
+            args = self.argv(role)
+            self.assertIn("--bare", args, role)
+            self.assertIn("--settings", args, role)
 
     def test_review_changes_loop_back_to_dev_with_feedback(self):
         os.environ["FAKE_REVIEW"] = "changes,ok"
