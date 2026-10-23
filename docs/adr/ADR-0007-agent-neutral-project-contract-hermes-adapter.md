@@ -16,6 +16,10 @@
 > `.hermes.md`/`HERMES.md` is present, `.hermes.md` taking priority (HermesVPS2 ADR-0021), so no
 > pointer file is needed; obsolete `.hermes.md` files must be removed for `AGENTS.md` to be read.
 
+> **Registry note (2026-10-23):** Arcane moved from VPS2 to the Mac mini 3M6 on 2026-10-18 and is
+> deployed from `lowcodai/arcane3m6`; `HermesVPS2` is retired. Its mentions above are historical.
+> How the adapter is installed now: `adapters/hermes/README.md`.
+
 ## Context
 
 - **CTX-001**: Every project receives `.hermes.md` (88 lines). It mixes rules any long-running
