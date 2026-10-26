@@ -1,7 +1,7 @@
 # ADR-0010 — Coding executors: Claude Code and OpenHands, declared per repository
 
 **Date:** 2026-10-26
-**Status:** Proposed — accepted when the Capitaine merges this ADR
+**Status:** Accepted (2026-10-26, Capitaine — merged on his instruction)
 **Decision makers:** Capitaine (Jérémie Coste)
 **Technical context:** dev factory kit (`dev-factory/project-template/`), Arcane (Hermes) on the Mac mini 3M6 with
 the Docker socket mounted, OpenHands 1.8 app and OpenHands CLI 1.16 available on 3M6, vLLM on the DGX Spark
