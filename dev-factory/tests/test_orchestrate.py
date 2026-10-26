@@ -400,8 +400,18 @@ class ExecutorTest(RepoCase):
         self.set_task(executor="openhands")
         self.assertEqual(self.run_task(), 0)
         log = (self.state_dir / "prefix.log").read_text().splitlines()
-        self.assertEqual(len(log), 3)                           # DEV (openhands), REVIEW, TEST
+        self.assertEqual(len(log), 4)                           # DEV (openhands), REVIEW, validation, TEST
         self.assertIn("fake_openhands.py", log[0])
+
+    def test_runner_prefix_from_environment_also_wraps_validations(self):
+        wrapper = self.tmp / "run-as-agent"
+        wrapper.write_text(f"#!/bin/sh\necho \"$@\" >> {self.state_dir}/prefix.log\nexec \"$@\"\n")
+        wrapper.chmod(0o755)
+        os.environ["ORCHESTRATE_RUNNER_PREFIX"] = str(wrapper)
+        self.assertEqual(self.run_task(), 0)
+        log = (self.state_dir / "prefix.log").read_text().splitlines()
+        self.assertEqual(len(log), 4)                           # DEV, REVIEW, validation `unit`, TEST
+        self.assertTrue(log[2].startswith("sh -c test ! -f FAIL_MARKER"), log[2])
 
     def shrink_review_budget(self):
         cfg_path = self.repo / ".ai" / "orchestration.yaml"

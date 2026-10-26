@@ -9,8 +9,10 @@ REVIEW and TEST stay Claude Code.
 
 The machine or container where `orchestrate.py` runs OpenHands must guarantee:
 
-1. the executor runs as an **unprivileged user**, distinct from the user running `orchestrate.py`
-   (`runner.prefix` in `.ai/orchestration.yaml` names the wrapper that drops to it);
+1. the executor **and the validation commands** (they run the agent's code) run as an **unprivileged
+   user**, distinct from the user running `orchestrate.py`: the runner sets
+   `ORCHESTRATE_RUNNER_PREFIX` (or the repo sets `runner.prefix`) to the wrapper that drops to it, and
+   installs the agent CLIs only on that user's `PATH`, so a run without the prefix fails closed;
 2. **no container-runtime socket**, no `sudo`;
 3. **no forge or git credentials** reachable by that user — the orchestrator pushes and opens PRs;
 4. an environment **rebuilt from an allow-list**: the LLM route (`LLM_MODEL`, `LLM_BASE_URL`,
