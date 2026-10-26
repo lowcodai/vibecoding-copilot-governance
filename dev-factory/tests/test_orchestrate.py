@@ -86,7 +86,7 @@ def sh(args, cwd):
     subprocess.run(args, cwd=cwd, check=True, capture_output=True, text=True)
 
 
-class OrchestrateTest(unittest.TestCase):
+class RepoCase(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
         self.repo = self.tmp / "proj"
@@ -127,6 +127,9 @@ class OrchestrateTest(unittest.TestCase):
     def state(self):
         return json.loads((self.repo / ".ai/runs/TASK-0001/state.json").read_text())
 
+
+
+class OrchestrateTest(RepoCase):
     def test_happy_path_reaches_ready_for_approval(self):
         self.assertEqual(self.run_task(), 0)
         st = self.state()
@@ -250,10 +253,219 @@ class OrchestrateTest(unittest.TestCase):
         self.assertEqual(self.state()["counters"]["dev_runs"], 1)
 
 
+FAKE_OPENHANDS = textwrap.dedent(
+    r"""
+    #!/usr/bin/env python3
+    # Fake `openhands --headless --json ... -f FILE`: status lines + JSONL events, scripted by FAKE_OH.
+    import json, os, subprocess, sys
+    from pathlib import Path
+    state = Path(os.environ["FAKE_STATE_DIR"])
+    counter = state / "oh.count"
+    n = int(counter.read_text()) if counter.exists() else 0
+    counter.write_text(str(n + 1))
+    order = Path(sys.argv[sys.argv.index("-f") + 1]).read_text()
+    (state / "oh.order").write_text(order)
+    (state / "oh.env").write_text(json.dumps({k: os.environ.get(k) for k in ("LLM_MODEL", "LLM_BASE_URL", "LLM_API_KEY")}))
+    (state / "oh.argv").write_text(json.dumps(sys.argv[1:]))
+    script = os.environ.get("FAKE_OH", "ok").split(",")
+    action = script[min(n, len(script) - 1)]
+    print("Initializing agent...")
+    print(json.dumps({"kind": "SystemPromptEvent", "source": "agent"}))
+    if action == "crash":
+        sys.exit(3)
+    steps = int(action[5:]) if action.startswith("steps") else 1
+    for i in range(steps):
+        Path(f"oh_{n}_{i}.txt").write_text(("line\n" * 40) + str(i))
+        subprocess.run(["git", "add", "-A"], check=True)
+        subprocess.run(["git", "commit", "-qm", f"feat: oh step {n}.{i}"], check=True)
+        print(json.dumps({"kind": "ActionEvent", "source": "agent", "action": {"kind": "TerminalAction", "command": "git commit"}}))
+    res = {"status": "BLOCKED", "reason": "need an ADR"} if action == "blocked" else {"status": "DONE", "summary": "done"}
+    block = "Done.\n```json\n" + json.dumps(res) + "\n```"
+    if action == "finish":
+        print(json.dumps({"kind": "ActionEvent", "source": "agent", "action": {"kind": "FinishAction", "message": block}}))
+    elif action != "silent":
+        print(json.dumps({"kind": "MessageEvent", "source": "agent",
+                          "llm_message": {"role": "assistant", "content": [{"type": "text", "text": block}]}}))
+    print("Agent finished")
+    print("Conversation ID: 0123")
+    """
+).lstrip()
+
+
+class ExecutorTest(RepoCase):
+    """ADR-0010: DEV on OpenHands where the repo allows it; chunked review; shared lock."""
+
+    def setUp(self):
+        super().setUp()
+        fake = self.tmp / "fake_openhands.py"
+        fake.write_text(FAKE_OPENHANDS)
+        fake.chmod(0o755)
+        cfg_path = self.repo / ".ai" / "orchestration.yaml"
+        cfg = yaml.safe_load(cfg_path.read_text())
+        oh = cfg["agents"]["dev"]["executors"]["openhands"]
+        oh["command"] = [sys.executable, str(fake)] + oh["command"][1:]
+        cfg_path.write_text(yaml.safe_dump(cfg))
+        sh(["git", "commit", "-qam", "cfg: fake openhands"], self.repo)
+        os.environ.pop("FAKE_OH", None)
+
+    def set_task(self, **fields):
+        path = self.repo / ".ai/tasks/TASK-0001.md"
+        text = path.read_text()
+        for k, v in fields.items():
+            text = text.replace(f"\n{k}: ", f"\n{k}: {v}  # was: ", 1) if f"\n{k}: " in text else text.replace("\n---\n", f"\n{k}: {v}\n---\n", 1)
+        path.write_text(text)
+
+    def allow(self, executors):
+        path = self.repo / ".ai/autonomy.yaml"
+        path.write_text(path.read_text().replace("executors: [claude-code]", f"executors: [{executors}]"))
+        sh(["git", "commit", "-qam", "allow executors"], self.repo)
+
+    def test_default_executor_is_claude_code(self):
+        self.assertEqual(self.run_task(), 0)
+        self.assertEqual(self.state()["executor"], "claude-code")
+        self.assertFalse((self.state_dir / "oh.count").exists())
+
+    def test_openhands_refused_when_the_repo_does_not_allow_it(self):
+        self.set_task(executor="openhands")
+        self.assertEqual(self.run_task(), 2)
+        self.assertIn("not allowed", self.state()["history"][-1]["reason"])
+        self.assertFalse((self.state_dir / "oh.count").exists())
+
+    def test_openhands_allowed_only_once_merged_on_base(self):
+        self.set_task(executor="openhands")
+        path = self.repo / ".ai/autonomy.yaml"
+        path.write_text(path.read_text().replace("executors: [claude-code]", "executors: [claude-code, openhands]"))
+        self.assertEqual(self.run_task(), 2)                    # working tree only: intersection refuses
+        self.assertIn("not allowed", self.state()["history"][-1]["reason"])
+
+    def test_unknown_executor_blocks(self):
+        self.set_task(executor="codex")
+        self.assertEqual(self.run_task(), 2)
+        self.assertIn("unknown executor", self.state()["history"][-1]["reason"])
+
+    def test_openhands_dev_reaches_ready_with_review_and_test_on_claude_code(self):
+        self.allow("claude-code, openhands")
+        self.set_task(executor="openhands")
+        self.assertEqual(self.run_task(), 0)
+        st = self.state()
+        self.assertEqual(st["state"], orchestrate.READY)
+        self.assertEqual(st["executor"], "openhands")
+        self.assertFalse((self.state_dir / "dev.count").exists())   # Claude Code DEV never ran
+        self.assertTrue((self.state_dir / "review.count").exists())
+        order = (self.state_dir / "oh.order").read_text()
+        self.assertIn("Role: DEV — build (OpenHands", order)
+        self.assertIn("Work order — DEV — TASK-0001", order)
+        env = json.loads((self.state_dir / "oh.env").read_text())
+        self.assertEqual(env["LLM_MODEL"], "openai/qwen3.8-27b-nvfp4")
+        self.assertTrue(env["LLM_BASE_URL"].endswith("/v1"))
+        self.assertEqual(env["LLM_API_KEY"], "local")
+
+    def test_openhands_finish_action_is_parsed(self):
+        self.allow("claude-code, openhands")
+        self.set_task(executor="openhands")
+        os.environ["FAKE_OH"] = "finish"
+        self.assertEqual(self.run_task(), 0)
+
+    def test_openhands_blocked_question_stops_the_run(self):
+        self.allow("openhands")
+        self.set_task(executor="openhands")
+        os.environ["FAKE_OH"] = "blocked"
+        self.assertEqual(self.run_task(), 2)
+        self.assertIn("need an ADR", self.state()["history"][-1]["reason"])
+
+    def test_openhands_crash_and_silence_block(self):
+        self.allow("openhands")
+        self.set_task(executor="openhands")
+        os.environ["FAKE_OH"] = "crash"
+        self.assertEqual(self.run_task(), 2)
+        self.assertIn("exited 3", self.state()["history"][-1]["reason"])
+
+    def test_openhands_without_result_blocks(self):
+        self.allow("openhands")
+        self.set_task(executor="openhands")
+        os.environ["FAKE_OH"] = "silent"
+        self.assertEqual(self.run_task(), 2)
+        self.assertIn("no parseable JSON", self.state()["history"][-1]["reason"])
+
+    def test_runner_prefix_wraps_every_agent(self):
+        wrapper = self.tmp / "run-as-agent"
+        wrapper.write_text(f"#!/bin/sh\necho \"$@\" >> {self.state_dir}/prefix.log\nexec \"$@\"\n")
+        wrapper.chmod(0o755)
+        cfg_path = self.repo / ".ai" / "orchestration.yaml"
+        cfg = yaml.safe_load(cfg_path.read_text())
+        cfg["runner"]["prefix"] = [str(wrapper)]
+        cfg_path.write_text(yaml.safe_dump(cfg))
+        sh(["git", "commit", "-qam", "prefix"], self.repo)
+        self.allow("claude-code, openhands")
+        self.set_task(executor="openhands")
+        self.assertEqual(self.run_task(), 0)
+        log = (self.state_dir / "prefix.log").read_text().splitlines()
+        self.assertEqual(len(log), 3)                           # DEV (openhands), REVIEW, TEST
+        self.assertIn("fake_openhands.py", log[0])
+
+    def shrink_review_budget(self):
+        cfg_path = self.repo / ".ai" / "orchestration.yaml"
+        cfg = yaml.safe_load(cfg_path.read_text())
+        cfg["gateways"]["cc-review"]["context_tokens"] = 1300
+        cfg["gateways"]["cc-review"]["max_output_tokens"] = 100
+        cfg["agents"]["review"]["overhead_tokens"] = 100
+        cfg_path.write_text(yaml.safe_dump(cfg))
+        sh(["git", "commit", "-qam", "small review budget"], self.repo)
+
+    def test_large_diff_is_reviewed_in_commit_chunks(self):
+        self.shrink_review_budget()
+        self.allow("openhands")
+        self.set_task(executor="openhands")
+        os.environ["FAKE_OH"] = "steps8"
+        self.assertEqual(self.run_task(), 0)
+        run = self.repo / ".ai/runs/TASK-0001"
+        chunks = sorted(run.glob("review-*-result.json"))
+        self.assertGreater(len(chunks), 1)
+        self.assertIn("REVIEW in", (run / "timeline.log").read_text())
+        self.assertEqual(json.loads((run / "review-result.json").read_text())["verdict"], "ACCEPTED")
+        self.assertIn(f"Chunk {len(chunks)}/{len(chunks)}", (run / "review-work-order.md").read_text())
+
+    def test_one_chunk_requesting_changes_sends_the_task_back(self):
+        self.shrink_review_budget()
+        self.allow("openhands")
+        self.set_task(executor="openhands")
+        os.environ["FAKE_OH"] = "steps8,ok"
+        os.environ["FAKE_REVIEW"] = "ok,changes,ok"
+        self.assertEqual(self.run_task(), 0)
+        st = self.state()
+        self.assertIn("review requested changes (cycle 1)", [h["reason"] for h in st["history"]])
+        order = (self.state_dir / "oh.order").read_text()
+        self.assertIn('"chunk": 2', order)
+
+    def test_shared_lock_serialises_repos(self):
+        lock = self.tmp / "model.lock"
+        cfg_path = self.repo / ".ai" / "orchestration.yaml"
+        cfg = yaml.safe_load(cfg_path.read_text())
+        cfg["execution"]["shared_lock"] = str(lock)
+        cfg_path.write_text(yaml.safe_dump(cfg))
+        other = self.tmp / "other"
+        other.mkdir()
+        with orchestrate.RepoLock(other, str(lock)):
+            self.assertEqual(self.run_task(), 1)
+        self.assertEqual(self.run_task(), 0)
+
+
 class HelpersTest(unittest.TestCase):
     def test_extract_last_fenced_json(self):
         text = 'x ```json\n{"a": 1}\n``` then ```json\n{"verdict": "PASS"}\n```'
         self.assertEqual(orchestrate.extract_result_json(text), {"verdict": "PASS"})
+
+    def test_openhands_final_text_prefers_the_last_agent_message(self):
+        out = "\n".join([
+            "Initializing agent...",
+            json.dumps({"kind": "MessageEvent", "source": "user", "llm_message": {"content": [{"type": "text", "text": "task"}]}}),
+            json.dumps({"kind": "MessageEvent", "source": "agent", "llm_message": {"content": [{"type": "text", "text": "first"}]}}),
+            "{not json",
+            json.dumps({"kind": "ActionEvent", "source": "agent", "action": {"kind": "FinishAction", "message": "final"}}),
+            "Goodbye!",
+        ])
+        self.assertEqual(orchestrate.openhands_final_text(out), "final")
+        self.assertEqual(orchestrate.openhands_final_text("nothing"), "")
 
     def test_extract_bare_json(self):
         self.assertEqual(orchestrate.extract_result_json('blah {"status": "DONE"} '), {"status": "DONE"})

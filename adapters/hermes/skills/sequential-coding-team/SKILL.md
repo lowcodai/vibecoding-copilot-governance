@@ -15,7 +15,13 @@ Follow the project's `AGENTS.md`, including its Continuity section.
 1. Read `AGENTS.md`, `.ai/orchestration.yaml`, and the PRD/ADRs relevant to the request.
 2. If the request needs an architecture decision no ADR makes: stop and propose an ADR
    (adr-generator) to the user first. Never push an undecided choice onto DEV.
-3. Split into tasks small enough for one DEV run (target: < 400 changed lines each).
+3. Choose the DEV executor of each task (ADR-0010), and write it as `executor:` in the contract:
+   - `claude-code` (default): a bounded task, < 400 changed lines; split bigger work into tasks.
+   - `openhands`: a long session — an epic of a plan, a multi-hour build/test loop, many files —
+     only if `.ai/autonomy.yaml` lists `openhands` under `executors:`. Ask it for one commit per
+     logical step: REVIEW reads big tasks commit group by commit group.
+   - Neither: PRD/ADR writing, infrastructure, production, security, secrets, incidents — that is
+     interactive work for the human with Claude Code (lane A); propose it, do not run it.
 4. More than 3 tasks, more than one epic, dependencies, or several sessions ahead? Write a plan
    first (`docs/plans/PLAN-NNNN-<slug>.md`, `templates/PLAN-template.md`, ADR-0006) in several
    verified edits, have it reviewed in a PR, then run its tasks in dependency order. Otherwise go
@@ -30,6 +36,8 @@ Follow the project's `AGENTS.md`, including its Continuity section.
    `plan:` and `epic:` when the task belongs to a plan.
 
 ## 3. Run
+Run `orchestrate.py` where the repo's runner is, never with an executor in your own environment
+(installation specifics: `references/hermes-operating-rules.md`, section "Runner").
 1. Start `python3 scripts/orchestrate.py run TASK-NNNN` in the background (terminal tool);
    it may run for a long time. Do not generate while it runs: poll with
    `orchestrate.py status TASK-NNNN` and `tail -n 20 .ai/runs/TASK-NNNN/timeline.log`
@@ -64,3 +72,5 @@ pick the next task whose dependencies are all merged.
 - Push, merge, rebase, or approve on the human's behalf (at `yolo` the orchestrator merges, not you);
   or change `.ai/autonomy.yaml`.
 - Edit `.ai/runs/**` or loosen `.ai/orchestration.yaml` limits to get a task through.
+- Run OpenHands (or Claude Code) yourself on a governed repo — e.g. the generic `openhands` skill:
+  coding agents run only through `orchestrate.py`, in the runner (ADR-0010).
