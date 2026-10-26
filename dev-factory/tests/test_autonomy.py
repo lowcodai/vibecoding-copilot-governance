@@ -203,6 +203,81 @@ class PolicyTest(unittest.TestCase):
         self.assertIn("level `trusted`", block.stdout)
 
 
+
+class ExecutorsPolicyTest(unittest.TestCase):
+    """ADR-0010: DEV executors allowed per repo, intersection of working tree and base branch."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_parse_executors(self):
+        self.assertEqual(autonomy.parse_executors("version: 1\nlevel: branch\n"), ["claude-code"])
+        self.assertEqual(autonomy.parse_executors("level: branch\nexecutors: [openhands, claude-code]  # c\n"),
+                         ["claude-code", "openhands"])
+        self.assertEqual(autonomy.parse_executors("level: branch\nexecutors: ['openhands']\n"), ["openhands"])
+        for bad in (None, "level: root\nexecutors: [openhands]\n", "level: branch\nexecutors: []\n",
+                    "level: branch\nexecutors: [codex]\n", "level: branch\nexecutors: openhands\n",
+                    "level: branch\nexecutors: [openhands, openhands]\n",
+                    "level: branch\nexecutors: [openhands]\nexecutors: [claude-code]\n"):
+            with self.subTest(bad=bad):
+                self.assertIsNone(autonomy.parse_executors(bad))
+
+    def test_effective_executors_is_the_intersection(self):
+        repo = make_repo(self.tmp, "branch")
+        self.assertEqual(autonomy.effective_executors(repo)[0], ["claude-code"])
+        level_file = repo / ".ai/autonomy.yaml"
+        level_file.write_text(LEVEL_FILE.format("branch") + "executors: [claude-code, openhands]\n")
+        git(repo, "commit", "-qam", "widen on the task branch")
+        self.assertEqual(autonomy.effective_executors(repo)[0], ["claude-code"])   # base branch decides
+        git(repo, "checkout", "-q", "main")
+        git(repo, "merge", "-q", "agent/TASK-0001")
+        self.assertEqual(autonomy.effective_executors(repo)[0], ["claude-code", "openhands"])
+        level_file.write_text(LEVEL_FILE.format("branch") + "executors: [openhands]\n")
+        self.assertEqual(autonomy.effective_executors(repo)[0], ["openhands"])     # narrowing applies at once
+
+    def test_invalid_executors_fall_back_to_claude_code(self):
+        repo = make_repo(self.tmp, "branch")
+        (repo / ".ai/autonomy.yaml").write_text(LEVEL_FILE.format("branch") + "executors: [rm -rf]\n")
+        executors, reason = autonomy.effective_executors(repo)
+        self.assertEqual(executors, ["claude-code"])
+        self.assertIn("invalid", reason)
+        self.assertTrue(any("executors" in p for p in autonomy.check(repo)))
+
+    def test_render_executors_updates_level_file_and_agents_block(self):
+        repo = make_repo(self.tmp, "branch")
+        (repo / "AGENTS.md").write_text("# AGENTS\n\n" + autonomy.agents_block("branch") + "\n")
+        msgs = autonomy.render(repo, executors=["openhands", "claude-code"])
+        self.assertTrue(any("executors: claude-code, openhands" in m for m in msgs), msgs)
+        text = (repo / ".ai/autonomy.yaml").read_text()
+        self.assertIn("level: branch\nexecutors: [claude-code, openhands]", text)
+        self.assertIn("`claude-code`, `openhands`", (repo / "AGENTS.md").read_text())
+        self.assertEqual(autonomy.check(repo), [])
+        autonomy.render(repo, level="trusted")                                    # level change keeps executors
+        self.assertIn("executors: [claude-code, openhands]", (repo / ".ai/autonomy.yaml").read_text())
+        with self.assertRaises(ValueError):
+            autonomy.render(repo, executors=["codex"])
+
+    def test_check_flags_agents_block_out_of_date(self):
+        repo = make_repo(self.tmp, "branch")
+        (repo / "AGENTS.md").write_text(autonomy.agents_block("branch") + "\n")
+        (repo / ".ai/autonomy.yaml").write_text(LEVEL_FILE.format("branch") + "executors: [claude-code, openhands]\n")
+        self.assertTrue(any("AGENTS.md" in p for p in autonomy.check(repo)))
+
+    def test_cli_agents_block_and_effective(self):
+        out = subprocess.run([sys.executable, str(HOOKS / "autonomy.py"), "agents-block", "--level", "branch",
+                              "--executors", "openhands,claude-code"], capture_output=True, text=True, check=True).stdout
+        self.assertIn("`claude-code`, `openhands`", out)
+        bad = subprocess.run([sys.executable, str(HOOKS / "autonomy.py"), "agents-block", "--level", "branch",
+                              "--executors", "codex"], capture_output=True, text=True)
+        self.assertNotEqual(bad.returncode, 0)
+        repo = make_repo(self.tmp, "branch")
+        out = subprocess.run([sys.executable, str(HOOKS / "autonomy.py"), "effective", "--root", str(repo)],
+                             capture_output=True, text=True, check=True).stdout
+        self.assertIn("executors: claude-code", out)
+
 class GuardianLevelTest(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())

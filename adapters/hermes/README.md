@@ -36,6 +36,13 @@ updates them itself**, then reports what it changed.
 - **`SOUL.md`** — only the delimited context-window section (`<!-- BEGIN/END managed-section:
   context-window -->`) is ever changed, by Arcane, on a brief that gives the new figures.
 
+## Coding agents: through the runner only (ADR-0010)
+
+Hermes never runs a coding agent in its own environment. The generic Hermes `openhands` skill
+(OpenHands CLI headless in Hermes' container) must not be used on governed repos: on Arcane it would
+run with root, the Docker socket and Arcane's secrets. Code work goes through `orchestrate.py` in the
+runner — see `references/hermes-operating-rules.md`, section "Runner", and `adapters/openhands/`.
+
 ## Other Hermes installations
 
 Copy `skills/sequential-coding-team/` into the Hermes skills directory. Do not touch `SOUL.md`

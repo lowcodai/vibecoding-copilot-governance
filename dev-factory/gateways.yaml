@@ -13,7 +13,7 @@ backend:
   engine: vllm
   model: qwen3.8-27b-nvfp4
   max_model_len: 98304        # >= the largest role context (98k)
-  max_num_seqs: 2             # Hermes (idle while waiting) + exactly one Claude Code role
+  max_num_seqs: 2             # Hermes (idle while waiting) + exactly one coding role (Claude Code or OpenHands)
   enable_prefix_caching: true # Claude Code re-sends the whole conversation every turn
   api: [openai, anthropic-messages]   # Claude Code needs /v1/messages (native vLLM or via a proxy)
 
@@ -35,6 +35,14 @@ profiles:
     temperature: 0.2
     thinking: optional        # if enabled, reasoning counts against the 4k cap
     notes: Only role allowed to edit files and commit.
+
+  oh-dev:                     # ADR-0010: OpenHands DEV, OpenAI API, LiteLLM slug openai/<model>
+    client: openhands
+    context_tokens: 98000
+    max_output_tokens: 8000
+    temperature: 0.2
+    thinking: optional
+    notes: Long sessions; edits files and commits; runs only in an isolated runner (adapters/openhands).
 
   cc-review:
     client: claude-code

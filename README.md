@@ -23,6 +23,7 @@ vibecoding-copilot-governance/
 ├── docs/               ← ADRs, methodology, audits, awesome-copilot map
 ├── dev-factory/        ← Agent-neutral project kit: orchestrate.py, .ai/, .claude/, docs/ skeleton (ADR-0005/0007)
 ├── adapters/hermes/    ← Hermes-specific rules and skill, installed in Hermes' environment (ADR-0007)
+├── adapters/openhands/ ← OpenHands as a DEV executor: runner contract and invocation (ADR-0010)
 ├── agents/             ← .agent.md files (GitHub Copilot format)
 ├── instructions/       ← .instructions.md files sourced from github/awesome-copilot
 ├── hooks/              ← GitHub Copilot hooks (tool-guardian, secrets-scanner, ...)
@@ -35,9 +36,10 @@ Skills and plugins are not stored here: they are installed in the target environ
 
 ## Dev factory (`dev-factory/`)
 
-Code work runs as a sequential team — Hermes orchestrates, Claude Code DEV → REVIEW → TEST run
-one at a time on the local model through dedicated gateways, a human validates and merges.
-See ADR-0005 and [dev-factory/README.md](dev-factory/README.md).
+Code work runs as a sequential team — Hermes orchestrates, DEV → REVIEW → TEST run one at a time
+on the local model through dedicated gateways, a human validates and merges (ADR-0005). DEV is
+Claude Code or, where the repo allows it, OpenHands for long sessions, in an isolated runner
+(ADR-0010). See [dev-factory/README.md](dev-factory/README.md).
 
 ## Project contract vs. agent adapters (ADR-0007)
 

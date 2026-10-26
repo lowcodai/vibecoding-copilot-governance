@@ -46,6 +46,26 @@ After every `write_file` on a `docs/operations/` file, a plan, a task contract, 
 treat the write as failed: retry once, then fall back to `terminal`/`execute_code` for that write.
 A write is not "verified" (Definition of done in `AGENTS.md`) until this read-back is done.
 
+## Runner (where `orchestrate.py` runs)
+
+Coding agents never run in your container (ADR-0010 DEC-004). On Arcane (3M6) the runner is the
+`dev-runner` container (`lowcodai/3m6-config`, `docker/dev-runner/`): it has its own clones under
+`/work/<repo>`, its own GitHub token for the orchestrator, and runs every agent as an unprivileged
+user. Drive it only through its `devrun` command, as user `orchestrator`:
+
+```bash
+D="docker exec -i -u orchestrator dev-runner devrun"
+$D sync lowcodai/<repo>                       # clone, or fetch and fast-forward the base branch
+$D new <repo> TASK-NNNN --title "<title>"     # creates .ai/tasks/TASK-NNNN.md from the template
+$D put <repo> TASK-NNNN < contract.md          # replaces the contract (stdin); `cat` prints it back
+$D run <repo> TASK-NNNN                        # starts the run in the background, returns at once
+$D status <repo> TASK-NNNN ; $D log <repo> TASK-NNNN 20
+$D approve <repo> TASK-NNNN --by "<name>" ; $D rework <repo> TASK-NNNN --feedback "<text>"
+```
+
+Write the contract in your workspace, `put` it, then `cat` it back to verify (the write
+verification rule below applies). Poll `status` and `log` slowly; one run at a time per runner.
+
 ## Working outside any repo
 
 When a session works outside any repo (direct chat, cron, another machine), keep the same

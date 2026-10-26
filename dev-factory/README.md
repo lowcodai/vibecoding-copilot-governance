@@ -19,7 +19,9 @@ User ─► Hermes (Engineering Manager, gateway hermes-orchestrator 98k/2k/0.2)
 ```
 
 How far agents may go (push, merge, curl/wget, gh) is a per-repo **autonomy level** declared in
-`.ai/autonomy.yaml` (ADR-0008): `supervised` (default), `branch` or `trusted`.
+`.ai/autonomy.yaml` (ADR-0008): `supervised` (default), `branch`, `trusted` or `yolo` (ADR-0009).
+The same file lists the **DEV executors** the repo allows (ADR-0010): `claude-code` (default) and
+`openhands` for long sessions — see [Executors](#executors-adr-0010).
 
 ## Contents
 
@@ -28,7 +30,7 @@ How far agents may go (push, merge, curl/wget, gh) is a per-repo **autonomy leve
 | `project-template/.ai/orchestration.yaml` | `.ai/orchestration.yaml` | agents, gateways, transitions limits, validation commands, git policy |
 | `project-template/.ai/autonomy.yaml` | `.ai/autonomy.yaml` | autonomy level of the repo (human-owned, protected; ADR-0008) |
 | `project-template/.ai/tasks/TASK-template.md` | `.ai/tasks/TASK-template.md` | task contract skeleton (`orchestrate.py new`) |
-| `project-template/.ai/roles/*.md` | `.ai/roles/*.md` | role prompts + JSON result contracts |
+| `project-template/.ai/roles/*.md` | `.ai/roles/*.md` | role prompts + JSON result contracts (`dev-openhands.md`: DEV on OpenHands) |
 | `project-template/.claude/settings.json` | `.claude/settings.json` | deny rules + hook wiring — **generated** from the level by `autonomy.py render` |
 | `project-template/.claude/hooks/autonomy.py` | `.claude/hooks/autonomy.py` | the only policy definition: levels, effective level, `render`, `check` |
 | `project-template/.claude/hooks/tool_guardian.py` | `.claude/hooks/tool_guardian.py` | PreToolUse (Bash): blocks destructive, exfiltrating or policy-breaking commands |
@@ -58,6 +60,30 @@ python3 scripts/orchestrate.py rework TASK-0042 --feedback "..."   # human sends
 
 Per run, `.ai/runs/TASK-0042/` holds `state.json`, `{dev,review,test}-result.json`,
 `*-work-order.md`, `*-raw-output.txt`, `validations.json`, `logs/*.log`, `timeline.log`.
+
+## Executors (ADR-0010)
+
+| Lane | Work | Executor | Model |
+|---|---|---|---|
+| A — interactive Claude Code with a human | PRD/ADR, infrastructure, production, security, secrets, incidents, escalations (ADR-0004) | Claude Code | frontier |
+| B — orchestrated, `executor: claude-code` | small, well-bounded tasks (< ~400 changed lines) | Claude Code DEV | local |
+| C — orchestrated, `executor: openhands` | long sessions: a plan epic, a multi-hour build/test loop | OpenHands CLI DEV | local |
+
+- **The repo allows**, in `.ai/autonomy.yaml`: `executors: [claude-code]` (default) or
+  `[claude-code, openhands]`. Effective list = intersection with the base branch's copy; change it with
+  `sync-governance.sh --executors claude-code,openhands`, then review and merge.
+- **The task chooses**: `executor:` in the front matter (default `claude-code`). A value the repo does
+  not allow ends the run `BLOCKED` before DEV.
+- **REVIEW and TEST are always Claude Code**, read-only: OpenHands work is judged by another runtime.
+- **OpenHands only through `orchestrate.py`, only in an isolated runner** (`runner.prefix`, see
+  [`adapters/openhands/`](../adapters/openhands/README.md)): unprivileged user, no container socket, no
+  git or forge credentials (the orchestrator pushes), no secret but the LLM key. Claude Code hooks do not
+  apply to it; the orchestrator's gates (protected paths, `autonomy-check`, `secrets-scan`, validations,
+  REVIEW, TEST) do.
+- **Long tasks are reviewed by chunks**: when the diff exceeds the REVIEW budget, consecutive commits are
+  grouped to fit and each group gets a REVIEW call (`review-N-result.json`); the worst verdict wins.
+  Ask DEV for one commit per logical step under ~400 lines.
+- **One coding agent per model**: `execution.shared_lock` (a path) serialises runs across repos.
 
 ## Autonomy levels (ADR-0008, ADR-0009)
 
