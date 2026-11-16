@@ -37,6 +37,8 @@ FAKE_AGENT = textwrap.dedent(
     n = int(counter.read_text()) if counter.exists() else 0
     counter.write_text(str(n + 1))
     (Path(os.environ["FAKE_STATE_DIR"]) / f"{role}.argv").write_text(json.dumps(sys.argv[1:]))
+    (Path(os.environ["FAKE_STATE_DIR"]) / f"{role}.env").write_text(
+        json.dumps({k: v for k, v in os.environ.items() if k.startswith(("CLAUDE_CODE_", "ANTHROPIC_"))}))
     script = os.environ.get(f"FAKE_{role.upper()}", "").split(",")
     action = script[min(n, len(script) - 1)] if script and script[0] else "ok"
     if action == "garbage":
@@ -157,6 +159,19 @@ class OrchestrateTest(RepoCase):
             args = self.argv(role)
             self.assertIn("--bare", args, role)
             self.assertIn("--settings", args, role)
+
+    def test_roles_get_their_gateway_window_and_output_cap(self):
+        # A model Claude Code does not know gets a default window: without the real one it may not
+        # compact before the engine's limit (arcane3m6 ADR-0004 MON-002).
+        self.assertEqual(self.run_task(), 0)
+        cfg = yaml.safe_load((self.repo / ".ai/orchestration.yaml").read_text())
+        for role in ("dev", "review", "test"):
+            with self.subTest(role=role):
+                gw = cfg["gateways"][cfg["agents"][role]["gateway"]]
+                env = json.loads((self.state_dir / f"{role}.env").read_text())
+                self.assertEqual(env["CLAUDE_CODE_MAX_CONTEXT_TOKENS"], str(gw["context_tokens"]))
+                self.assertEqual(env["CLAUDE_CODE_MAX_OUTPUT_TOKENS"], str(gw["max_output_tokens"]))
+                self.assertEqual(env["ANTHROPIC_MODEL"], gw["model"])
 
     def test_review_changes_loop_back_to_dev_with_feedback(self):
         os.environ["FAKE_REVIEW"] = "changes,ok"
