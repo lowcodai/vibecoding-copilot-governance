@@ -520,21 +520,32 @@ FAKE_GH = textwrap.dedent(
         fh.write(json.dumps(sys.argv[1:]) + "\n")
     if sys.argv[1:3] == ["pr", "create"]:
         print("https://github.com/o/r/pull/7")
-    if sys.argv[1:3] == ["pr", "checks"]:
-        seq = os.environ.get("FAKE_GH_CHECKS")          # e.g. "pending,fail,pass" — one entry per call
-        if not seq:
-            sys.exit(int(os.environ.get("FAKE_GH_CHECKS_RC", "0")))
+    if sys.argv[1:3] == ["pr", "checks"]:                # needs the Checks permission: never used (403)
+        print("GraphQL: Resource not accessible by personal access token", file=sys.stderr)
+        sys.exit(1)
+    if sys.argv[1:3] == ["pr", "view"] and "headRefOid" in sys.argv:
+        print("abc1234def5678")
+        sys.exit(0)
+    if sys.argv[1:3] == ["run", "list"]:
+        # FAKE_GH_CHECKS: e.g. "pending,fail,pass" — one entry per call; else FAKE_GH_CHECKS_RC 0 = pass, 1 = fail
+        seq = os.environ.get("FAKE_GH_CHECKS") or ("pass" if os.environ.get("FAKE_GH_CHECKS_RC", "0") == "0" else "fail")
         counter = Path(os.environ["FAKE_GH_LOG"] + ".checks")
         n = int(counter.read_text()) if counter.exists() else 0
         counter.write_text(str(n + 1))
         items = seq.split(",")
         state = items[min(n, len(items) - 1)]
-        out, rc = {"pass": ("ci\tpass\t1m\thttps://github.com/o/r/actions/runs/41/job/1", 0),
-                   "fail": ("ci\tfail\t1m\thttps://github.com/o/r/actions/runs/42/job/7", 1),
-                   "pending": ("ci\tpending\t0\thttps://github.com/o/r/actions/runs/43/job/9", 8),
-                   "none": ("no checks reported on the 'agent/TASK-0001' branch", 1)}[state]
-        print(out)
-        sys.exit(rc)
+        run = lambda i, wf, status, concl: {"databaseId": i, "workflowName": wf, "status": status, "conclusion": concl,
+                                           "url": f"https://github.com/o/r/actions/runs/{i}"}
+        if state == "error":
+            print("HTTP 403: Resource not accessible by personal access token", file=sys.stderr)
+            sys.exit(1)
+        runs = {"pass": [run(41, "ci", "completed", "success"), run(44, "lint", "completed", "skipped")],
+                "fail": [run(42, "ci", "completed", "failure"), run(44, "lint", "completed", "success")],
+                "pending": [run(43, "ci", "in_progress", "")],
+                "rerun": [run(45, "ci", "completed", "success"), run(42, "ci", "completed", "failure")],
+                "none": []}[state]
+        print(json.dumps(runs))
+        sys.exit(0)
     if sys.argv[1:3] == ["run", "view"]:
         print("ci / test\tFAILED tests/test_x.py::test_y - AssertionError")
     sys.exit(0)
@@ -622,7 +633,9 @@ class AutonomyOrchestrateTest(OrchestrateTest):
         calls = self.gh_calls()
         url = "https://github.com/o/r/pull/7"
         self.assertIn(["pr", "ready", url], calls)
-        self.assertIn(["pr", "checks", url], calls)
+        self.assertIn(["run", "list", "--commit", "abc1234def5678", "--json",
+                       "databaseId,workflowName,status,conclusion,url"], calls)
+        self.assertNotIn(["pr", "checks", url], calls)
         self.assertIn(["pr", "merge", url, "--squash"], calls)
 
     def test_trusted_red_checks_leave_merge_to_a_human(self):
@@ -724,6 +737,23 @@ class YoloOrchestrateTest(AutonomyOrchestrateTest):
         self.assertEqual(st["state"], orchestrate.BLOCKED)
         self.assertIn("max_ci_cycles=2", st["history"][-1]["reason"])
         self.assertEqual(self.merges(), [])
+
+    def test_unreadable_ci_blocks_instead_of_sending_dev_back(self):
+        # A token without the permission to read CI is not a code problem (arcane3m6 TASK-0001, 2026-11-16).
+        os.environ["FAKE_GH_CHECKS"] = "error"
+        self.assertEqual(self.run_task(), 2)
+        st = self.state()
+        self.assertEqual(st["state"], orchestrate.BLOCKED)
+        self.assertIn("cannot read the CI", st["history"][-1]["reason"])
+        self.assertIn("403", st["history"][-1]["reason"])
+        self.assertEqual(st["counters"].get("ci_cycles", 0), 0)
+        self.assertEqual(st["counters"]["dev_runs"], 1)
+        self.assertEqual(self.merges(), [])
+
+    def test_a_successful_rerun_supersedes_the_failed_run(self):
+        os.environ["FAKE_GH_CHECKS"] = "rerun"
+        self.assertEqual(self.run_task(), 0)
+        self.assertEqual(self.state()["merge"]["checks"], "green")
 
     def test_repo_without_ci_is_merged(self):
         os.environ["FAKE_GH_CHECKS"] = "none"
