@@ -63,6 +63,7 @@ READY = "READY_FOR_APPROVAL"
 APPROVED = "APPROVED"
 BLOCKED = "BLOCKED"
 TERMINAL = {READY, APPROVED, BLOCKED}
+CI_OK = {"success", "skipped", "neutral"}   # GitHub Actions run conclusions that count as green
 
 TASK_ID_RE = re.compile(r"^TASK-\d{4}$")
 DEFAULT_EXECUTOR = "claude-code"
@@ -709,27 +710,54 @@ class Orchestrator:
                     pub["pr_error"] = f"gh pr create failed: {out[-500:]}"
         st["publish"] = pub
         self.save_state(st)
-        self.log("published: " + (f"pushed {branch}" + (f", draft PR {pub['pr_url']}" if pub.get("pr_url") else
+        kind = "PR" if self.level == "yolo" else "draft PR"
+        self.log("published: " + (f"pushed {branch}" + (f", {kind} {pub['pr_url']}" if pub.get("pr_url") else
                                                          f" ({pub.get('pr_error', 'no PR')})")
                                   if pub["pushed"] else pub["error"]))
 
+    def ci_status(self, pr: str) -> tuple[str, str]:
+        """One reading of the GitHub Actions runs on the PR's head commit: green | red | pending | none | error.
+
+        Reads the Actions API, which a fine-grained token reaches with Actions: Read. `gh pr checks` needs
+        the Checks permission, which fine-grained tokens cannot have: it answered 403, read as red CI.
+        Commit statuses posted by other CI systems are not read. An unreadable answer is `error`, never red."""
+        code, sha = self._cmd(["gh", "pr", "view", pr, "--json", "headRefOid", "-q", ".headRefOid"], self.repo)
+        sha = sha.strip()
+        if code != 0 or not re.fullmatch(r"[0-9a-f]{7,40}", sha):
+            return "error", f"cannot read the head commit of {pr}: {sha[-300:]}"
+        code, out = self._cmd(["gh", "run", "list", "--commit", sha, "--json",
+                               "databaseId,workflowName,status,conclusion,url"], self.repo)
+        if code != 0:
+            return "error", f"gh run list failed: {out[-300:]}"
+        try:
+            runs = json.loads(out or "[]")
+        except json.JSONDecodeError:
+            return "error", f"unreadable gh run list output: {out[-300:]}"
+        latest: dict[str, dict] = {}
+        for r in runs:                                  # newest first: a re-run supersedes the older run
+            latest.setdefault(r.get("workflowName") or str(r.get("databaseId")), r)
+        line = lambda r: f"{r.get('workflowName')}\t{r.get('status')}\t{r.get('conclusion') or '-'}\t{r.get('url')}"
+        if not latest:
+            return "none", f"no workflow run on {sha}"
+        if any(r.get("status") != "completed" for r in latest.values()):
+            return "pending", "\n".join(map(line, latest.values()))
+        failed = [r for r in latest.values() if (r.get("conclusion") or "") not in CI_OK]
+        return ("red", "\n".join(map(line, failed))) if failed else ("green", "\n".join(map(line, latest.values())))
+
     def wait_for_checks(self, pr: str) -> tuple[str, str]:
-        """Poll `gh pr checks` until a verdict: green | none (no check configured) | red | timeout."""
+        """Poll ci_status until a verdict: green | none (no CI configured) | red | error | timeout."""
         lim = self.cfg.get("limits", {})
         timeout = float(lim.get("ci_timeout_sec", 1800))
         poll = float(lim.get("ci_poll_sec", 20))
-        grace = float(lim.get("ci_no_checks_grace_sec", 90))   # checks may take a moment to register
+        grace = float(lim.get("ci_no_checks_grace_sec", 90))   # runs may take a moment to register
         start = time.monotonic()
         while True:
-            code, out = self._cmd(["gh", "pr", "checks", pr], self.repo)
+            status, out = self.ci_status(pr)
             elapsed = time.monotonic() - start
-            if code == 0:
-                return "green", out
-            if "no checks reported" in out.lower():
-                if elapsed >= grace:
-                    return "none", out
-            elif code != 8:                                    # 8 = checks still pending
-                return "red", out
+            if status in ("green", "red", "error"):
+                return status, out
+            if status == "none" and elapsed >= grace:
+                return "none", out
             if elapsed >= timeout:
                 return "timeout", out
             time.sleep(poll)
@@ -762,6 +790,9 @@ class Orchestrator:
         if status == "timeout":
             self.transition(st, BLOCKED, f"CI on {pr} did not finish within limits.ci_timeout_sec")
             return
+        if status == "error":   # e.g. a token permission: not DEV's to fix
+            self.transition(st, BLOCKED, f"cannot read the CI of {pr}: {out}")
+            return
         c = st["counters"]
         c["ci_cycles"] = c.get("ci_cycles", 0) + 1
         if c["ci_cycles"] > self.limit("max_ci_cycles"):
@@ -780,9 +811,9 @@ class Orchestrator:
             result["error"] = "no pull request recorded for this task: merge manually"
         else:
             self._cmd(["gh", "pr", "ready", pr], cwd)   # drafts cannot be merged; harmless if already ready
-            code, out = self._cmd(["gh", "pr", "checks", pr], cwd)
-            if code != 0:
-                result["error"] = f"checks not all green: {out[-300:]}"
+            status, out = self.ci_status(pr)
+            if status != "green":
+                result["error"] = f"checks not all green ({status}): {out[-300:]}"
             else:
                 code, out = self._cmd(["gh", "pr", "merge", pr, "--squash"], cwd)
                 result.update({"merged": True} if code == 0 else {"error": f"gh pr merge failed: {out[-300:]}"})
