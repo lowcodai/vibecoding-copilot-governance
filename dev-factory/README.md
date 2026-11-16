@@ -97,13 +97,17 @@ or invalid file means `supervised`. No environment variable is consulted.
 | Push + PR (orchestrated) | no | orchestrator, draft PR, at `READY_FOR_APPROVAL` | same | orchestrator, ready PR |
 | Merge (interactive) | no | `main` into one's own branch | + own PR when all checks are green | same; the agent fixes red CI first |
 | Merge (orchestrated) | human | human | orchestrator, after `orchestrate.py approve`, checks green | orchestrator, **no approval**, on green CI; red CI goes back to DEV (`max_ci_cycles`) |
-| curl / wget | no | yes (no pipe to a shell, no upload) | yes | yes |
+| curl / wget | no | yes (no pipe to a shell, no upload) | yes | yes; interactive: uploads to private-network hosts |
 | gh | no | read-only, `pr create --draft`, `pr comment` (DEV: read-only) | + `pr merge` of own green PR | + `pr edit/ready`, `issue`, `run rerun` |
+| Sync `main` (interactive) | no | no | no | `git switch main`, `git pull --ff-only` |
+| Protected paths (interactive) | no | no | no | editable, through a PR on green CI (ADR-0011) |
 
 At every level: no force push, no push to / commit on / merge into `main`, no tag push, no `rebase`,
 no `git pull`, no `--no-verify`, no push redirection (`remote.*.push`, `url.*.insteadOf`,
 `core.hooksPath`, `git -c`), no secrets read or committed, no protected-path change, no `sudo`,
-no exfiltration, no publication. DEV never pushes or merges itself, at any level.
+no exfiltration, no publication. DEV never pushes or merges itself, at any level. Exception: interactive
+`yolo` sessions may fast-forward `main`, edit the protected paths and upload files to private-network
+hosts (ADR-0011); orchestrated runs never.
 
 Change a repo's level with `vibecoding-bootstrap/scripts/sync-governance.sh --autonomy <level>`, then
 review and merge the diff. `autonomy.py check` (built into every orchestrated run as the

@@ -28,6 +28,7 @@ Environment (set by humans, never by the agent; none of them can raise the auton
 from __future__ import annotations
 
 import datetime as dt
+import ipaddress
 import json
 import os
 import re
@@ -42,15 +43,21 @@ import autonomy  # noqa: E402  (same directory, standard library only)
 
 _PROTECTED = "|".join(re.escape(p) for p in autonomy.PROTECTED_PATHS)
 _ENV_FILE = r"(?:^|[\s/'\"=])\.env(?!\.(?:example|sample|template|dist)\b)(?:\.[\w-]+)?(?=$|[\s'\";|&)])"
+# Invariants that interactive `yolo` sessions may pass in a checked form (ADR-0011, see relaxed_ok).
+_PULL = r"\bgit\s+(?:-C\s+\S+\s+)?pull\b"
+_SWITCH_BASE = r"\bgit\s+(?:-C\s+\S+\s+)?(?:checkout|switch)\s+(?:-\S+\s+)*(?:main|master)\b"
+_UPLOADS = (r"\bcurl\b[^\n]*(?:--data(?:-binary|-raw)?|-d|-F|--form)\s+\S*@",
+            r"\bcurl\b[^\n]*(?:--upload-file|\s-T)\s",
+            r"\bwget\b[^\n]*--post-file")
 
 # (category, severity, regex, suggestion) — invariants, matched case-insensitively on the whole command
 PATTERNS: list[tuple[str, str, str, str]] = [
     # Git policy common to every level (ADR-0005, ADR-0008 DEC-002)
     ("agent_git_policy", "high", r"\bgit\s+(?:-C\s+\S+\s+)?rebase\b", "Do not rewrite history; add a new commit instead"),
-    ("agent_git_policy", "high", r"\bgit\s+(?:-C\s+\S+\s+)?pull\b", "Use `git fetch`, then ask (or merge the base branch into your own branch if your level allows it)"),
+    ("agent_git_policy", "high", _PULL, "Use `git fetch`, then ask (or merge the base branch into your own branch if your level allows it)"),
     ("agent_git_policy", "high", r"\bgit\s+(?:-C\s+\S+\s+)?branch\s+(?:\S+\s+)*-D\b", "Do not delete branches"),
     ("agent_git_policy", "high", r"\bgit\s+(?:-C\s+\S+\s+)?worktree\b", "Worktrees are managed by scripts/orchestrate.py"),
-    ("agent_git_policy", "high", r"\bgit\s+(?:-C\s+\S+\s+)?(?:checkout|switch)\s+(?:-\S+\s+)*(?:main|master)\b", "Stay on the task branch"),
+    ("agent_git_policy", "high", _SWITCH_BASE, "Stay on the task branch"),
     ("agent_git_policy", "high", r"\bgit\s+(?:-C\s+\S+\s+)?commit\b[^;&|]*--no-verify", "Do not bypass commit hooks"),
     ("agent_git_policy", "high", r"\bgit\s+(?:-C\s+\S+\s+)?push\b[^;&|\n]*(?:--tags|--follow-tags|refs/tags/)", "Tags are pushed by humans"),
     ("agent_git_policy", "high", r"\bgh\s+pr\s+merge\b[^;&|\n]*--admin", "Never bypass branch protection"),
@@ -72,9 +79,7 @@ PATTERNS: list[tuple[str, str, str, str]] = [
     ("permission_abuse", "high", r"\bchmod\s+(?:-R\s+)?(?:0?777|a\+rwx)\b", "Use 755 for directories, 644 for files"),
     # Network exfiltration / remote code execution
     ("network_exfiltration", "critical", r"\b(?:curl|wget)\b[^\n]*\|\s*(?:sudo\s+)?(?:ba|z|da)?sh\b", "Download, review, then execute"),
-    ("network_exfiltration", "high", r"\bcurl\b[^\n]*(?:--data(?:-binary|-raw)?|-d|-F|--form)\s+\S*@", "Do not upload local files"),
-    ("network_exfiltration", "high", r"\bcurl\b[^\n]*(?:--upload-file|\s-T)\s", "Do not upload local files"),
-    ("network_exfiltration", "high", r"\bwget\b[^\n]*--post-file", "Do not upload local files"),
+    *(("network_exfiltration", "high", regex, "Do not upload local files") for regex in _UPLOADS),
     # System danger / publication
     ("system_danger", "high", r"(?:^|[;&|]\s*)sudo\s", "Run with least privilege; no sudo"),
     ("system_danger", "high", r"\b(?:npm|pnpm|yarn)\s+publish\b|\btwine\s+upload\b|\bdocker\s+push\b", "Publishing is a human action"),
@@ -313,18 +318,117 @@ def check_level(command: str, cwd: Path, root: Path, level: str, base: str) -> l
     return found
 
 
+# ─── Interactive `yolo` relaxations (ADR-0011) ───────────────────────────────
+# curl/wget options that take a separate value: their value is not a URL. An option missing here makes
+# its value count as a URL, which can only refuse more, never allow more.
+CURL_VALUE_OPTS = {"-d", "--data", "--data-binary", "--data-raw", "--data-urlencode", "--data-ascii", "--json",
+                   "-F", "--form", "--form-string", "-H", "--header", "-o", "--output", "-T", "--upload-file",
+                   "-X", "--request", "-u", "--user", "-m", "--max-time", "--connect-timeout", "-w", "--write-out",
+                   "-A", "--user-agent", "-e", "--referer", "-b", "--cookie", "-c", "--cookie-jar", "--retry",
+                   "--url", "-x", "--proxy"}
+WGET_VALUE_OPTS = {"-O", "--output-document", "-o", "--output-file", "-a", "--append-output", "-t", "--tries",
+                   "-T", "--timeout", "-U", "--user-agent", "-P", "--directory-prefix", "--header", "--post-file",
+                   "--post-data", "--body-file", "--body-data", "--method"}
+# Options that redirect traffic or read URLs from elsewhere: no relaxation when present, also inside
+# a cluster of short flags (`-sK`).
+CURL_REDIRECTS = ({"--resolve", "--connect-to", "--proxy1.0", "--preproxy", "--config"}, set("K"))
+WGET_REDIRECTS = ({"--execute", "--input-file", "--base", "--config"}, set("eiB"))
+
+
+def private_url(value: str) -> bool:
+    """An explicit-scheme URL whose host is loopback, private (RFC 1918), link-local or *.local."""
+    m = re.fullmatch(r"[a-z][a-z0-9+.-]*://(?:[^@/\s]*@)?(\[[^\]]+\]|[^/:?#\s]+)(?::\d+)?(?:[/?#]\S*)?", value, re.I)
+    if not m:
+        return False
+    host = m.group(1).strip("[]").lower()
+    if host == "localhost" or host.endswith(".local"):
+        return True
+    try:
+        ip = ipaddress.ip_address(host)
+    except ValueError:
+        return False
+    return ip.is_loopback or ip.is_link_local or (ip.is_private and not ip.is_unspecified)
+
+
+def upload_stays_private(segment: str) -> bool:
+    """Every destination of this curl/wget segment (URLs and proxy) is on the private network."""
+    if re.search(r"(?:^|[\s;&|(])(?:https?|ftp|all)_proxy=", segment, flags=re.IGNORECASE):
+        return False
+    tokens = tokens_of(segment)
+    if not tokens or os.path.basename(tokens[0]) not in ("curl", "wget"):
+        return False
+    curl = os.path.basename(tokens[0]) == "curl"
+    value_opts = CURL_VALUE_OPTS if curl else WGET_VALUE_OPTS
+    url_opts = {"--url", "-x", "--proxy"} if curl else set()
+    long_redirects, short_redirects = CURL_REDIRECTS if curl else WGET_REDIRECTS
+    if curl:
+        short_redirects = short_redirects | {"x"}   # `-x` alone is read below; inside a cluster it is refused
+    urls, i = [], 1
+    while i < len(tokens):
+        t = tokens[i]
+        name, _, inline = t.partition("=")
+        if t in url_opts:
+            if i + 1 >= len(tokens):
+                return False
+            urls.append(tokens[i + 1])
+            i += 2
+            continue
+        if name in url_opts and inline:
+            urls.append(inline)
+        elif name in long_redirects or (re.match(r"^-[^-]", t) and short_redirects & set(t[1:])):
+            return False
+        elif t in value_opts:
+            i += 1   # skip the value
+        elif not t.startswith("-"):
+            urls.append(t)
+        i += 1
+    return bool(urls) and all(private_url(u) for u in urls)
+
+
+def base_sync_ok(tokens: list[str], cwd: Path, base: str) -> bool:
+    """`git pull --ff-only [-q] [origin <base>]` or `git switch|checkout [-q] <base>`."""
+    if not tokens or os.path.basename(tokens[0]) != "git":
+        return False
+    sub, args, _gcwd, found = parse_git(tokens, cwd)
+    if found:
+        return False
+    flags = [a for a in args if a.startswith("-")]
+    rest = [a for a in args if not a.startswith("-")]
+    if sub == "pull":
+        return ("--ff-only" in flags and set(flags) <= {"--ff-only", "-q", "--quiet"}
+                and rest in ([], ["origin", base]))
+    if sub in ("switch", "checkout"):
+        return set(flags) <= {"-q", "--quiet"} and rest == [base]
+    return False
+
+
+def relaxed_ok(category: str, regex: str, command: str, cwd: Path, base: str) -> bool:
+    """True when an invariant hit is one that interactive `yolo` sessions may run (ADR-0011)."""
+    if category == "protected_config":
+        return True
+    if regex in (_PULL, _SWITCH_BASE) or regex in _UPLOADS:
+        segments = [s for s in split_segments(command) if re.search(regex, s, flags=re.IGNORECASE)]
+        if not segments:   # the match spans several segments: refuse
+            return False
+        if regex in _UPLOADS:
+            return all(upload_stays_private(s) for s in segments)
+        return all(base_sync_ok(tokens_of(s), cwd, base) for s in segments)
+    return False
+
+
 def scan(command: str, cwd: Path | None = None) -> tuple[list[dict], str]:
     cwd = cwd or Path.cwd()
     root_s = run_git(cwd, "rev-parse", "--show-toplevel") or os.environ.get("CLAUDE_PROJECT_DIR") or str(cwd)
     root = Path(root_s)
     level, _reason = autonomy.effective_level(root)
     base = autonomy.base_branch(root)
+    relaxed = level == "yolo" and not os.environ.get("ORCHESTRATE_ROLE")
     found = []
     for seg in split_segments(command):
         found += check_rm(tokens_of(seg), seg)
     for category, severity, regex, suggestion in PATTERNS:
         m = re.search(regex, command, flags=re.IGNORECASE)
-        if m:
+        if m and not (relaxed and relaxed_ok(category, regex, command, cwd, base)):
             found.append(finding(category, severity, m.group(0), suggestion))
     found += check_level(command, cwd, root, level, base)
     return found, level
