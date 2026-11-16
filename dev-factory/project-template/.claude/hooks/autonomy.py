@@ -137,6 +137,14 @@ def at_least(level: str, minimum: str) -> bool:
 
 
 # ─── Policy per level ────────────────────────────────────────────────────────
+# Edits of the protected paths (ADR-0008 DEC-004). At `yolo` they leave settings.json and go to the
+# orchestrator's --disallowedTools instead: interactive sessions may edit them, orchestrated runs never (ADR-0011).
+PROTECTED_EDIT_RULES = ("Edit(./.ai/autonomy.yaml)", "Edit(./.ai/orchestration.yaml)", "Edit(./.ai/roles/**)",
+                        "Edit(./.claude/**)", "Edit(./scripts/orchestrate.py)")
+# Base-branch sync: at `yolo` tool_guardian allows `git pull --ff-only` and `git switch <base>` in interactive sessions.
+BASE_SYNC_RULES = ("Bash(git pull:*)", "Bash(git checkout main:*)", "Bash(git switch main:*)")
+
+
 def deny_rules(level: str) -> list[str]:
     """Claude Code deny rules. Defense in depth: tool_guardian enforces the same policy at run time."""
     rules = [
@@ -171,12 +179,16 @@ def deny_rules(level: str) -> list[str]:
         "Edit(./.claude/**)",
         "Edit(./scripts/orchestrate.py)",
     ]
+    if level == "yolo":
+        rules = [r for r in rules if r not in PROTECTED_EDIT_RULES + BASE_SYNC_RULES]
     return rules
 
 
 def disallowed_tools(level: str) -> list[str]:
     """Tools the orchestrator adds to runner.disallowed_tools for this level."""
-    return ["WebFetch", "WebSearch"] if level == "supervised" else []
+    if level == "supervised":
+        return ["WebFetch", "WebSearch"]
+    return list(PROTECTED_EDIT_RULES) if level == "yolo" else []
 
 
 def settings(level: str) -> dict:
@@ -220,7 +232,9 @@ def claude_line(level: str, base: str = DEFAULT_BASE) -> str:
                    f"or rebase.",
         "yolo": f"- Autonomy `yolo` (`.ai/autonomy.yaml`): no human approval. Work through a PR from your own "
                 f"branch: push it, open the PR, fix the code until every check is green, then merge it yourself "
-                f"(`gh pr merge <n> --squash`); never push {base}, force-push, rebase or merge on red checks.",
+                f"(`gh pr merge <n> --squash`); never push {base}, force-push, rebase or merge on red checks. "
+                f"Interactive sessions only: you may edit `.claude/`, `.ai/` and `scripts/orchestrate.py`, run "
+                f"`git switch {base}` and `git pull --ff-only`, and upload files to private-network hosts.",
     }
     return lines[level]
 
@@ -261,10 +275,21 @@ def agents_block(level: str, base: str = DEFAULT_BASE, executors: list[str] | tu
                       "until they are (`gh run view --log-failed`), then `gh pr merge <n> --squash`",
              "the orchestrator merges once all checks are green; red CI goes back to DEV (at most "
              "`max_ci_cycles`); no human approval"),
-            ("curl / wget", "yes (no pipe to a shell, no file upload)", "DEV: yes"),
+            ("curl / wget", "yes (no pipe to a shell; file upload only to private-network hosts)",
+             "DEV: yes (no file upload)"),
             ("gh", "read and write: `pr`, `issue`, `run rerun`; `api` GET only", "DEV: read-only"),
+            ("Sync with the base branch", f"`git switch {base}`, `git pull --ff-only`", "DEV: no"),
+            ("Protected paths", "editable (ADR-0011), through a PR merged on green CI", "DEV: never"),
         ],
     }
+    if level == "yolo":
+        forbidden = (f"force push, push to / commit on / merge into `{base}`, tag push, `rebase`, `--no-verify`, "
+                     "reading or committing secrets; in orchestrated runs also `git pull` and editing `.claude/`, "
+                     "`.ai/autonomy.yaml`, `.ai/orchestration.yaml`, `.ai/roles/` or `scripts/orchestrate.py`.")
+    else:
+        forbidden = (f"force push, push to / commit on / merge into `{base}`, tag push, `rebase`,\n`git pull`, "
+                     "`--no-verify`, reading or committing secrets, editing `.claude/`, `.ai/autonomy.yaml`,\n"
+                     "`.ai/orchestration.yaml`, `.ai/roles/` or `scripts/orchestrate.py`.")
     table = "\n".join(f"| {a} | {i} | {o} |" for a, i, o in rows[level])
     allowed = ", ".join(f"`{e}`" for e in executors)
     return f"""{BEGIN}
@@ -281,9 +306,7 @@ DEV executors allowed in orchestrated runs (ADR-0010): {allowed}. A task
 picks one with `executor:` in its front matter; OpenHands runs only through `scripts/orchestrate.py`,
 in an isolated runner.
 
-Always forbidden: force push, push to / commit on / merge into `{base}`, tag push, `rebase`,
-`git pull`, `--no-verify`, reading or committing secrets, editing `.claude/`, `.ai/autonomy.yaml`,
-`.ai/orchestration.yaml`, `.ai/roles/` or `scripts/orchestrate.py`.
+Always forbidden: {forbidden}
 {END}"""
 
 

@@ -680,6 +680,13 @@ class YoloOrchestrateTest(AutonomyOrchestrateTest):
         self.assertEqual(self.merges(), [["pr", "merge", "https://github.com/o/r/pull/7", "--squash"]])
         self.assertEqual([h["to"] for h in st["history"]][-2:], ["READY_FOR_APPROVAL", "APPROVED"])
 
+    def test_orchestrated_roles_never_edit_protected_paths(self):
+        # settings.json no longer denies them at yolo (ADR-0011): the orchestrator must, for every role.
+        self.assertEqual(self.run_task(), 0)
+        for role in ("dev", "review", "test"):
+            with self.subTest(role=role):
+                self.assertTrue(set(autonomy.PROTECTED_EDIT_RULES) <= set(self.disallowed(role)))
+
     def test_red_ci_goes_back_to_dev_with_the_logs_then_merges(self):
         os.environ["FAKE_GH_CHECKS"] = "fail,pass"
         self.assertEqual(self.run_task(), 0)

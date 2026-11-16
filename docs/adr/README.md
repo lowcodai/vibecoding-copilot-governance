@@ -15,8 +15,9 @@ consumer projects, see `dev-factory/project-template/docs/adr/README.md`.
 | [0006](ADR-0006-plans-in-docs-plans.md) | Delivery plans in `docs/plans/`, mandatory beyond three tasks | Accepted | 2026-10-05 | amends 0001 (Plan location) |
 | [0007](ADR-0007-agent-neutral-project-contract-hermes-adapter.md) | Agent-neutral project contract; Hermes specifics in `adapters/hermes/` | Accepted | 2026-10-05 | amends 0001 (mode names), 0004, 0005 (where Hermes rules live) |
 | [0008](ADR-0008-per-repo-agent-autonomy-levels.md) | Per-repository agent autonomy levels (`supervised`, `branch`, `trusted`) | Accepted | 2026-10-23 | amends 0005 (git model, kit sync); amended by 0009 (level `yolo`) |
-| [0009](ADR-0009-autonomy-level-yolo.md) | Autonomy level `yolo`: agents merge their own PRs on green CI | Accepted | 2026-10-23 | amends 0008 (levels, rollback) and 0005 (human validation, at `yolo` only) |
+| [0009](ADR-0009-autonomy-level-yolo.md) | Autonomy level `yolo`: agents merge their own PRs on green CI | Accepted | 2026-10-23 | amends 0008 (levels, rollback) and 0005 (human validation, at `yolo` only); amended by 0011 (invariants, rollback) |
 | [0010](ADR-0010-coding-executors-claude-code-and-openhands.md) | Coding executors: Claude Code and OpenHands, declared per repository | Accepted | 2026-10-26 | amends 0005 (who is DEV), 0007 (adapters), 0008 (level file) |
+| [0011](ADR-0011-yolo-interactive-relaxations.md) | `yolo` interactive sessions: protected paths, base-branch sync, private-network uploads | Accepted | 2026-11-16 | amends 0008 (invariants, protected paths) and 0009 (invariants, rollback), interactive `yolo` only |
 
 Withdrawn (never accepted, kept for traceability, never implement from them):
 
@@ -32,7 +33,8 @@ in `docs/plans/`, mandatory beyond three tasks (0006); projects are agent-neutra
 specifics live in `adapters/` (0007); each repo declares its agents' autonomy level in
 `.ai/autonomy.yaml` — `supervised` by default, `branch` or `trusted` — and humans always approve (0008),
 except at `yolo` where the agent merges on green CI (0009); DEV runs on Claude Code or, where the repo
-allows it, OpenHands in an isolated runner (0010).
+allows it, OpenHands in an isolated runner (0010); interactive `yolo` sessions may also edit the protected
+paths, fast-forward the base branch and upload files to private-network hosts (0011).
 
 ## Rules
 
