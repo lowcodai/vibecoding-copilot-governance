@@ -337,6 +337,9 @@ class Orchestrator:
             "ANTHROPIC_DEFAULT_SONNET_MODEL": gw["model"],
             "ANTHROPIC_DEFAULT_OPUS_MODEL": gw["model"],
             "CLAUDE_CODE_MAX_OUTPUT_TOKENS": str(gw["max_output_tokens"]),
+            # The local model is unknown to Claude Code: give it the role's real window so that
+            # auto-compact keeps the session under the engine's limit.
+            "CLAUDE_CODE_MAX_CONTEXT_TOKENS": str(gw["context_tokens"]),
             "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
             "DISABLE_TELEMETRY": "1",
             "ORCHESTRATE_ROLE": role,
