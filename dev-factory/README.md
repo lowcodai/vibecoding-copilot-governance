@@ -56,7 +56,13 @@ python3 scripts/orchestrate.py run TASK-0042      # start or resume; exit 0 = RE
 python3 scripts/orchestrate.py status TASK-0042
 python3 scripts/orchestrate.py approve TASK-0042 --by "Jeremie"    # then merge agent/TASK-0042 (merged for you at `trusted`)
 python3 scripts/orchestrate.py rework TASK-0042 --feedback "..."   # human sends it back to DEV
+python3 scripts/orchestrate.py republish TASK-0042   # retry push/PR (and the yolo merge) once the cause is fixed
 ```
+
+`republish` is for a task stopped *after* READY_FOR_APPROVAL by something outside the code: a token
+without the `Workflows` permission, the network, unreadable CI. It re-runs the validations (they must
+be green), then pushes, opens or reuses the PR and, at `yolo`, waits for CI and merges. No agent runs.
+A task blocked before READY_FOR_APPROVAL, or with red validations, goes through `rework` instead.
 
 Per run, `.ai/runs/TASK-0042/` holds `state.json`, `{dev,review,test}-result.json`,
 `*-work-order.md`, `*-raw-output.txt`, `validations.json`, `logs/*.log`, `timeline.log`.

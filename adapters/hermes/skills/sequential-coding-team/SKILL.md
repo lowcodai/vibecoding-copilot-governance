@@ -65,6 +65,8 @@ pick the next task whose dependencies are all merged.
   - environment / validation misconfigured → fix the config with the human, then
     `orchestrate.py rework TASK-NNNN --feedback "<what changed>"`.
   - escalation criteria of `agents/runbook-generator.agent.md` met → escalate as documented.
+  - blocked after READY_FOR_APPROVAL by publication (push rejected, token permission, unreadable CI)
+    → have the human fix the cause, then `orchestrate.py republish TASK-NNNN`: no agent runs again.
 - Human rejects → `orchestrate.py rework TASK-NNNN --feedback "<their words>"` and run again.
 
 ## Never

@@ -61,6 +61,7 @@ $D put <repo> TASK-NNNN < contract.md          # replaces the contract (stdin); 
 $D run <repo> TASK-NNNN                        # starts the run in the background, returns at once
 $D status <repo> TASK-NNNN ; $D log <repo> TASK-NNNN 20
 $D approve <repo> TASK-NNNN --by "<name>" ; $D rework <repo> TASK-NNNN --feedback "<text>"
+$D republish <repo> TASK-NNNN                  # retry push/PR/merge after a publication BLOCKED; background
 ```
 
 Write the contract in your workspace, `put` it, then `cat` it back to verify (the write

@@ -23,6 +23,7 @@ Usage:
   orchestrate.py status  TASK-0042
   orchestrate.py approve TASK-0042 --by "Jeremie"
   orchestrate.py rework  TASK-0042 --feedback "..."   # human sends it back to DEV
+  orchestrate.py republish TASK-0042                  # retry push/PR (and yolo merge) after TEST passed
 
 Requires: python3 >= 3.9, PyYAML, git, the agent CLI configured in
 .ai/orchestration.yaml (Claude Code; the OpenHands CLI for `executor: openhands`),
@@ -828,6 +829,38 @@ class Orchestrator:
         self.log(f"stopped in {st['state']}")
         return st["state"]
 
+    def republish(self) -> str:
+        """Retry the publication of a task that already passed TEST: push, PR and, at `yolo`, CI wait and merge.
+
+        For a run stopped after READY_FOR_APPROVAL by something outside the code (a token permission, the
+        network, unreadable CI): no agent runs again. The validations are re-run first and must be green."""
+        st = self.load_state()
+        if not autonomy.at_least(self.level, "branch"):
+            raise OrchestrationError(f"autonomy {self.level}: this level publishes nothing")
+        pub = st.get("publish") or {}
+        last = st["history"][-1] if st.get("history") else {}
+        if st["state"] == READY:
+            if pub.get("pushed") and pub.get("pr_url"):
+                raise OrchestrationError(f"already published: {pub['pr_url']}")
+        elif not (st["state"] == BLOCKED and last.get("from") == READY):
+            raise OrchestrationError(f"cannot republish from {st['state']}: only a task stopped after "
+                                     "READY_FOR_APPROVAL (use rework to send it back to DEV)")
+        wt = self.ensure_worktree(st)
+        validations = self.run_validations(wt, st["base_sha"])
+        write_json_atomic(self.run_dir / "validations.json", {"results": validations})
+        failed = [v["name"] for v in validations if v["exit_code"] != 0]
+        if failed:
+            raise OrchestrationError(f"validations red on {st['branch']} ({', '.join(failed)}): use rework")
+        if st["state"] == BLOCKED:
+            self.transition(st, READY, "human requested republish (validations re-run green)")
+        self.publish(st, wt)
+        if self.level == "yolo":
+            self.autoland(st)
+        while st["state"] not in TERMINAL:   # red CI at `yolo` sends the task back to DEV: carry on
+            self.step(st)
+        self.log(f"stopped in {st['state']}")
+        return st["state"]
+
 
 # ─── Global lock: one agent at a time on the whole repo ─────────────────────
 class RepoLock:
@@ -884,6 +917,7 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("status"); p.add_argument("task")
     p = sub.add_parser("approve"); p.add_argument("task"); p.add_argument("--by", required=True)
     p = sub.add_parser("rework"); p.add_argument("task"); p.add_argument("--feedback", required=True)
+    p = sub.add_parser("republish"); p.add_argument("task")
     args = ap.parse_args(argv)
     repo = Path(args.repo).resolve()
 
@@ -899,6 +933,9 @@ def main(argv: list[str] | None = None) -> int:
         with RepoLock(repo, (orch.cfg.get("execution") or {}).get("shared_lock")):
             if args.cmd == "run":
                 final = orch.run()
+                return 0 if final in (READY, APPROVED) else 2
+            if args.cmd == "republish":
+                final = orch.republish()
                 return 0 if final in (READY, APPROVED) else 2
             st = orch.load_state()
             if args.cmd == "approve":
