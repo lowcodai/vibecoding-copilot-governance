@@ -674,6 +674,11 @@ class AutonomyOrchestrateTest(OrchestrateTest):
         self.assertEqual(check["exit_code"], 1)
         self.assertIn("settings.json", check["log_tail"])
 
+    def test_republish_needs_a_level_that_publishes(self):
+        self.assertEqual(self.run_task(), 0)                         # supervised: READY, nothing pushed
+        self.assertEqual(orchestrate.main(["--repo", str(self.repo), "republish", "TASK-0001"]), 1)
+        self.assertEqual(self.state()["state"], orchestrate.READY)
+
     def test_dev_preflight_requires_the_autonomy_module(self):
         sh(["git", "rm", "-q", ".claude/hooks/autonomy.py"], self.repo)
         sh(["git", "commit", "-qm", "drop policy"], self.repo)
@@ -764,6 +769,47 @@ class YoloOrchestrateTest(AutonomyOrchestrateTest):
         sh(["git", "remote", "remove", "origin"], self.repo)
         self.assertEqual(self.run_task(), 2)
         self.assertIn("no pull request", self.state()["history"][-1]["reason"])
+
+    def republish(self):
+        return orchestrate.main(["--repo", str(self.repo), "republish", "TASK-0001"])
+
+    def agent_calls(self):
+        return {r: int((self.state_dir / f"{r}.count").read_text()) for r in ("dev", "review", "test")}
+
+    def test_republish_after_a_rejected_push_merges_without_running_agents(self):
+        # arcane3m6 TASK-0002 (2026-11-17): the runner token lacked the Workflows permission.
+        sh(["git", "remote", "remove", "origin"], self.repo)
+        self.assertEqual(self.run_task(), 2)
+        calls = self.agent_calls()
+        sh(["git", "remote", "add", "origin", str(self.tmp / "origin.git")], self.repo)
+        self.assertEqual(self.republish(), 0)
+        st = self.state()
+        self.assertEqual(st["state"], orchestrate.APPROVED)
+        self.assertTrue(st["merge"]["merged"])
+        self.assertEqual(self.agent_calls(), calls)                   # no agent ran again
+        self.assertEqual([h["to"] for h in st["history"]][-3:], ["BLOCKED", "READY_FOR_APPROVAL", "APPROVED"])
+        self.assertEqual(len(self.merges()), 1)
+
+    def test_republish_refuses_a_task_blocked_before_ready(self):
+        os.environ["FAKE_DEV"] = "blocked"
+        self.assertEqual(self.run_task(), 2)
+        self.assertEqual(self.republish(), 1)
+        self.assertEqual(self.state()["state"], orchestrate.BLOCKED)
+        self.assertEqual(self.merges(), [])
+
+    def test_republish_refuses_red_validations(self):
+        sh(["git", "remote", "remove", "origin"], self.repo)
+        self.assertEqual(self.run_task(), 2)
+        sh(["git", "remote", "add", "origin", str(self.tmp / "origin.git")], self.repo)
+        (Path(self.state()["worktree"]) / "FAIL_MARKER").write_text("x\n")
+        self.assertEqual(self.republish(), 1)
+        self.assertEqual(self.state()["state"], orchestrate.BLOCKED)
+        self.assertEqual(self.merges(), [])
+
+    def test_republish_refuses_a_task_already_merged(self):
+        self.assertEqual(self.run_task(), 0)
+        self.assertEqual(self.republish(), 1)
+        self.assertEqual(len(self.merges()), 1)
 
 
 # The level-specific classes reuse the fixtures of their parent, not its test methods (each level
